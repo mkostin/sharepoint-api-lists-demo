@@ -3,24 +3,44 @@ package com.example.sharepoint.client.network;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyStore;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.SingleClientConnManager;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.HTTP;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-import com.example.com.example.odata_test_client.R;
+import com.example.sharepoint.client.R;
 import com.example.sharepoint.client.logger.Logger;
+import com.example.sharepoint.client.network.auth.AuthType;
 
 /**
  * Implements standard HTTP operation (without MMS routing). Implements basic functionality to make HTTP requests.
  */
 public abstract class HttpOperation extends BaseOperation {
+
+    /**
+     * Indicates authentication type for this connection. User name and password are retrieved from
+     * preferences.
+     */
+    protected AuthType authType = AuthType.Undefined;
 
     /**
      * Response code.
@@ -34,9 +54,10 @@ public abstract class HttpOperation extends BaseOperation {
      *
      * @param listener Listener to get notifications when operation will be completed.
      */
-    public HttpOperation(OnOperaionExecutionListener listener, Context context) {
+    public HttpOperation(OnOperaionExecutionListener listener, AuthType authType, Context context) {
         super(listener);
         this.context = context;
+        this.authType = authType;
     }
 
     @Override
@@ -78,6 +99,7 @@ public abstract class HttpOperation extends BaseOperation {
 
         try {
             httpClient = new DefaultHttpClient();
+            initializeClient((DefaultHttpClient) httpClient);
             setCredentials(((DefaultHttpClient) httpClient).getCredentialsProvider());
 
             HttpUriRequest httpMessage = getHttpRequest();
@@ -125,6 +147,50 @@ public abstract class HttpOperation extends BaseOperation {
         }
     }
 
+    public HttpClient getSecureHttpClient() {
+        try {
+
+            SchemeRegistry schemeRegistry = new SchemeRegistry();
+            schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+            schemeRegistry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+
+            HttpParams params = new BasicHttpParams();
+            SingleClientConnManager mgr = new SingleClientConnManager(params, schemeRegistry);
+
+            return new DefaultHttpClient(mgr, params);
+
+        } catch (Exception e) {
+
+            Logger.logApplicationException(e, BaseOperation.class.getSimpleName() + ": Unable to create SecureHttpClient: " + e.getMessage());
+            return new DefaultHttpClient();
+        }
+    }
+
+    public HttpClient getTrustAllHttpClient() {
+        try {
+            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            trustStore.load(null, null);
+
+            SSLSocketFactory sf = new CustomSSLSocketFactory(trustStore);
+            sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+
+            HttpParams params = new BasicHttpParams();
+            HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+            HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
+
+            SchemeRegistry registry = new SchemeRegistry();
+            registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+            registry.register(new Scheme("https", sf, 443));
+
+            ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
+
+            return new DefaultHttpClient(ccm, params);
+        } catch (Exception e) {
+            Logger.logApplicationException(e, BaseOperation.class.getSimpleName() + ": Unable to create TrustAllHttpClient: " + e.getMessage());
+            return new DefaultHttpClient();
+        }
+    }
+
     /**
      * Handles server response.
      *
@@ -143,5 +209,12 @@ public abstract class HttpOperation extends BaseOperation {
      */
     public int getResponseCode() {
         return mResponseCode;
+    }
+
+    /**
+     * @return Authentication type.
+     */
+    public AuthType getAuthenticationType() {
+        return this.authType;
     }
 }

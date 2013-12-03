@@ -1,17 +1,18 @@
 package com.example.sharepoint.client.ui;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.widget.TextView;
 
-import com.example.com.example.odata_test_client.R;
+import com.example.sharepoint.client.R;
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.network.BaseOperation;
 import com.example.sharepoint.client.network.BaseOperation.OnOperaionExecutionListener;
-import com.example.sharepoint.client.network.ListsRequestHttpOperation;
+import com.example.sharepoint.client.network.ListsMetaODataOperation;
+import com.example.sharepoint.client.network.ListsOperation;
+import com.example.sharepoint.client.network.auth.AuthType;
 
 /**
  * Sample activity displaying request results.
@@ -22,7 +23,8 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        new ListsReceiveTask(this).execute();
+        new ListsReceiveTask().execute();
+        new MetadataReceiveTask().execute();
     }
 
     @Override
@@ -32,12 +34,19 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
     }
 
     @Override
-    public void onExecutionComplete(BaseOperation operation, boolean executionResult) {
-        final ListsRequestHttpOperation oper = (ListsRequestHttpOperation) operation;
+    public void onExecutionComplete(final BaseOperation operation, boolean executionResult) {
         runOnUiThread(new Runnable() {
             public void run() {
                 try {
-                    ((TextView) MainActivity.this.findViewById(R.id.response_view)).setText(oper.getResult());
+                    TextView view = null;
+                    if(operation instanceof ListsOperation) {
+                        view = ((TextView) MainActivity.this.findViewById(R.id.response_view_lists));
+                    } else if(operation instanceof ListsMetaODataOperation) {
+                        view = ((TextView) MainActivity.this.findViewById(R.id.response_view_metadata));
+                    }
+                    if(view != null) {
+                        view.setText(operation.getResponse());
+                    }
                 } catch (Exception e) {
                     Logger.logApplicationException(e, getClass().getSimpleName() + ".run(): Error.");
                 }
@@ -45,27 +54,31 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
         });
     }
 
-    public class ListsReceiveTask extends AsyncTask<Void, Void, String> {
-
-        Context context;
-
-        public ListsReceiveTask(Context ctx) {
-            super();
-            context = ctx;
-        }
-
+    public class MetadataReceiveTask extends AsyncTask<Void, Void, String> {
         @Override
         protected String doInBackground(Void... params) {
             try {
-                ListsRequestHttpOperation oper = new ListsRequestHttpOperation(MainActivity.this, context);
-                oper.execute();
-                return oper.getResult();
+                ListsMetaODataOperation operMeta = new ListsMetaODataOperation(MainActivity.this, AuthType.Office365, MainActivity.this);
+                operMeta.execute();
+                return operMeta.getResponse();
             } catch (Exception e) {
                 Logger.logApplicationException(e, getClass().getSimpleName() + ".doInBackground(): Error.");
             }
-
             return null;
         }
+    }
 
+    public class ListsReceiveTask extends AsyncTask<Void, Void, String> {
+        @Override
+        protected String doInBackground(Void... params) {
+            try {
+                ListsOperation operLists = new ListsOperation(MainActivity.this, AuthType.Office365, MainActivity.this);
+                operLists.execute();
+                return operLists.getResponse();
+            } catch (Exception e) {
+                Logger.logApplicationException(e, getClass().getSimpleName() + ".doInBackground(): Error.");
+            }
+            return null;
+        }
     }
 }

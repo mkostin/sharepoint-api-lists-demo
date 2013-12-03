@@ -19,4 +19,5 @@ public class Configuration {
      * Turns error tracing.
      */
     public static boolean TRACE_ENABLED = true;
+
 }

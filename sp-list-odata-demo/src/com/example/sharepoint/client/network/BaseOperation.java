@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -88,13 +89,27 @@ public abstract class BaseOperation {
     protected abstract String getServerUrl();
 
     /**
-     * Called during http client setup to set authentication credentials. Should be overridden if necessary.
+     * Called during http client setup to set authentication credentials. Should be overridden if necessary. Default implementation does
+     * nothing and returns <code>true</code>.
      *
      * @param provider Credentials provider
      *
      * @return <code>true</code> if credentials were set correctly, or <code>false</code> in case of error.
      */
-    protected abstract boolean setCredentials(CredentialsProvider provider);
+    protected boolean setCredentials(CredentialsProvider provider) {
+        return true;
+    };
+
+    /**
+     * Called during http client setup. Can be overridden if necessary. Default implementation does nothing and returns <code>true</code>.
+     *
+     * @param provider Credentials provider
+     *
+     * @return <code>true</code> if initialization was successfull, <code>false</code> otherwise.
+     */
+    protected boolean initializeClient(HttpClient httpClient) {
+        return true;
+    }
 
     /**
      * Creates and retrieves instance of {@linkplain HttpUriRequest} object initiated with headers and message body (if any) using

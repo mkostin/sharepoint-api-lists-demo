@@ -17,7 +17,7 @@ public final class FileWriter implements IWriter {
     /**
      * File name to store log information.
      */
-    private final static String LOG_FILE_NAME = "Office365ListsDemoLog.txt";
+    private final static String LOG_FILE_NAME = "Office365MailDemoLog.txt";
 
     /**
      * Instance of the class.

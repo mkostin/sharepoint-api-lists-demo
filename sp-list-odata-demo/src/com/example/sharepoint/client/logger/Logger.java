@@ -1,6 +1,9 @@
 package com.example.sharepoint.client.logger;
 
+import android.util.Log;
+
 import com.example.sharepoint.client.Configuration;
+import com.example.sharepoint.client.Constants;
 
 
 /**
@@ -62,7 +65,10 @@ public final class Logger {
      * @param friendlyMessage The friendly message.
      */
     public static void logApplicationException(Exception exception, String friendlyMessage) {
-        if (Configuration.LOG_ENABLED) logEntry(exception, friendlyMessage);
+        if (Configuration.LOG_ENABLED) {
+            Log.e(Constants.APP_TAG, friendlyMessage, exception);
+            logEntry(exception, friendlyMessage);
+        }
     }
 
     /**
@@ -71,7 +77,10 @@ public final class Logger {
      * @param friendlyMessage The friendly message.
      */
     public static void logMessage(String friendlyMessage) {
-        if (Configuration.LOG_ENABLED) logEntry(null, friendlyMessage);
+        if (Configuration.LOG_ENABLED) {
+            Log.d(Constants.APP_TAG, friendlyMessage);
+            logEntry(null, friendlyMessage);
+        }
     }
 
     /**
