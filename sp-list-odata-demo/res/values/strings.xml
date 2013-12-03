@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">com.example.odata_test_client</string>
+    <string name="action_settings">Settings</string>
+    <string name="pending_request">Pending request&#8230;</string>
+    <string name="data_connection_no_data_connection">No data connection</string>
+
+</resources>
