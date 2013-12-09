@@ -6,7 +6,6 @@ import java.util.Map;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ReceiverCallNotAllowedException;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
