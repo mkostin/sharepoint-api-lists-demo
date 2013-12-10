@@ -22,4 +22,20 @@
         android:layout_marginTop="45dp"
         android:text="Do the magic!" />
 
+    <EditText
+        android:id="@+id/txtLog"
+        android:layout_width="500dp"
+        android:layout_height="500dp"
+        android:layout_alignLeft="@+id/button1"
+        android:layout_below="@+id/button1"
+        android:layout_marginTop="34dp"
+        android:ems="10"
+        android:inputType="textMultiLine"
+        android:lines="8"
+        android:minLines="6"
+        android:textSize="10dp" >
+
+        <requestFocus />
+    </EditText>
+
 </RelativeLayout>

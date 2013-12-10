@@ -32,7 +32,7 @@ public class AndroidHttpConnection implements HttpConnection {
 	@Override
 	public HttpConnectionFuture execute(final Request request) {
 
-			final HttpConnectionFuture future = new HttpConnectionFuture();
+		final HttpConnectionFuture future = new HttpConnectionFuture();
 		
 		final RequestTask requestTask = new RequestTask() {
 

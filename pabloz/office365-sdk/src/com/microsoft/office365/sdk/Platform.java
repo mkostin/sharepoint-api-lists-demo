@@ -2,8 +2,11 @@ package com.microsoft.office365.sdk;
 
 import java.util.Locale;
 
+import android.os.Build;
+
 import com.microsoft.office365.sdk.http.AndroidHttpConnection;
 import com.microsoft.office365.sdk.http.HttpConnection;
+import com.microsoft.office365.sdk.http.JavaHttpConnection;
 
 
 /**
@@ -19,10 +22,10 @@ public class Platform {
 	 * @return An HttpConnection
 	 */
 	public static HttpConnection createHttpConnection() {
-		if (isAndroid()) {
+		if (true || isAndroid() && Build.VERSION.SDK_INT <= Build.VERSION_CODES.FROYO) {
 			return new AndroidHttpConnection();
 		} else {
-			return null;
+			return new JavaHttpConnection();
 		}
 	}
 

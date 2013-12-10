@@ -6,16 +6,21 @@ import java.util.Map;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.net.Credentials;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
+import com.microsoft.office365.sdk.Action;
 import com.microsoft.office365.sdk.ErrorCallback;
 import com.microsoft.office365.sdk.OfficeFuture;
 import com.microsoft.office365.sdk.SPList;
+import com.microsoft.office365.sdk.SPListField;
 import com.microsoft.office365.sdk.SPListItem;
 import com.microsoft.office365.sdk.SharepointClient;
+import com.microsoft.office365.sdk.SharepointOnlineCredentials;
 import com.microsoft.office365.sdk.http.BasicAuthenticationCredentials;
 
 public class MainActivity extends Activity {
@@ -35,23 +40,10 @@ public class MainActivity extends Activity {
 		return sb.toString();
 	}
 	
-	/* To enable AAD, uncomment this
-	
-	AuthenticationContext mContext;
-	
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		mContext.onActivityResult(requestCode, resultCode, data);
-	}
-	*/
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
-		BasicAuthenticationCredentials credentials = new BasicAuthenticationCredentials("lagashsystems\\barrya", "Password11");
-		mClient = new SharepointClient("http://shpint:5050", credentials);
 		
 		((Button)findViewById(R.id.button1)).setOnClickListener(new View.OnClickListener() {
 			
@@ -65,41 +57,72 @@ public class MainActivity extends Activity {
 	private void clickButton1() {
 		
 		try {
-			OfficeFuture<Void> uploadFuture = mClient.uploadFile("ListaDoc", "textFile.txt", "Hello world!".getBytes());
-			uploadFuture.onError(new DefaultErrorCallback());
+			final String sharepointSite = "https://lagashsystems365.sharepoint.com/sites/Argentina/Produccion/";
+			String clientId = "c2c8ce1c-2a18-4ea6-8034-96935c451dd6";
+			String redirectUrl = "https://www.lagash.com/login";
+			String office365Domain = "lagash.com";
+			String clientSecret = "OCT+qIaOXMEmaQ5slKM7dd+24JcLUimWpSiGlqUHYUg=";
 			
-			uploadFuture.get(); //wait for completion
+			OfficeFuture<SharepointOnlineCredentials> credentialsFuture = SharepointOnlineCredentials.requestCredentials(this, sharepointSite, clientId, redirectUrl, office365Domain, clientSecret);
 			
-			createAndShowDialog("File uploaded!", "Success!");
-			
+			credentialsFuture.onError(new DefaultErrorCallback());
+			credentialsFuture.done(new Action<SharepointOnlineCredentials>() {
+				
+				@Override
+				public void run(SharepointOnlineCredentials credentials) throws Exception {
+					//BasicAuthenticationCredentials credentials = new BasicAuthenticationCredentials("lagashsystems\\barrya", "Password11");
+					mClient = new SharepointClient(sharepointSite, credentials);
 
-			OfficeFuture<SPList> listFuture = mClient.getList("ListaComun");
-			listFuture.onError(new DefaultErrorCallback());
+					OfficeFuture<SPList> listFuture = mClient.getList("RegularList");
+					
+					SPList list = listFuture.get();
+					
+					OfficeFuture<String> titleFuture = mClient.getWebTitle();
+					String title = titleFuture.get(); //wait for completion
+					log("Title: " + title, "Success!");
+					
+					OfficeFuture<Void> uploadFuture = mClient.uploadFile("DocLib", "textFile.txt", "Hello world!".getBytes());
+					
+					uploadFuture.get(); //wait for completion
+					
+					log("File uploaded!", "Success!");
+										
+					String message = String.format("List received! Name: %s, ItemType: %s", list.getTitle(), list.getListItemEntityTypeFullName());
+					log(message, "Success!");
+					
+					OfficeFuture<List<SPListItem>> itemsFuture = mClient.getListItems(list);
+					
+					List<SPListItem> items = itemsFuture.get();
+					
+					log(String.format("Received %s items", items.size()), "Success!");
+					
+					OfficeFuture<List<SPListField>> fieldsFuture = mClient.getListFields("RegularList");
+					
+					List<SPListField> fields = fieldsFuture.get();
+					
+					String numberColumnFieldName = "";
+					
+					for (SPListField field : fields) {
+						if (field.getTitle().equals("NumberColumn")) {
+							numberColumnFieldName = field.getEntityPropertyName();
+						}
+					}
+					
+					Map<String, Object> values = new HashMap<String, Object>();
+					values.put("Title", "Hello Android!");
+					values.put(numberColumnFieldName, 42); // EntityPropertyName[NumberColumn]
+					
+					OfficeFuture<Void> insertFuture = mClient.insertListItem(list, values);
+					
+					insertFuture.get(); // wait for completion.
+					
+					log("Inserted!", "Success!");
+				}
+			});
 			
-			SPList list = listFuture.get();
 			
-			String message = String.format("List received! Name: %s, ItemType: %s", list.getTitle(), list.getListItemEntityTypeFullName());
-			createAndShowDialog(message, "Success!");
-			
-			OfficeFuture<List<SPListItem>> itemsFuture = mClient.getListItems(list);
-			
-			itemsFuture.onError(new DefaultErrorCallback());
-			
-			List<SPListItem> items = itemsFuture.get();
-			
-			createAndShowDialog(String.format("Received %s items", items.size()), "Success!");
-			
-			Map<String, Object> values = new HashMap<String, Object>();
-			values.put("Title", "Hello Android!");
-			values.put("NumberColumn", 42);
-			
-			OfficeFuture<Void> insertFuture = mClient.insertListItem(list, values);
-			
-			insertFuture.get(); // wait for completion.
-			
-			createAndShowDialog("Inserted!", "Success!");
 		} catch (Throwable e) {
-			createAndShowDialog(e.toString(), "Error");
+			log(e.toString(), "Error");
 		}
 		
 	}
@@ -108,7 +131,8 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void onError(Throwable error) {
-			createAndShowDialog(getExceptionContent(error), "Error");
+			error.printStackTrace();
+			log(getExceptionContent(error), "Error");
 		}
 	}
 
@@ -127,17 +151,23 @@ public class MainActivity extends Activity {
 	 * @param title
 	 *            The dialog title
 	 */
-	private void createAndShowDialog(final String message, final String title) {
+	private void log(final String message, final String title) {
 		final Activity that = this;
 		runOnUiThread(new Runnable() {
 			
 			@Override
 			public void run() {
+				EditText log = (EditText)findViewById(R.id.txtLog);
+				
+				log.append(title + ": " + message + "\n");
+				
+				/*
 				AlertDialog.Builder builder = new AlertDialog.Builder(that);
 
 				builder.setMessage(message);
 				builder.setTitle(title);
 				builder.create().show();
+				*/
 			}
 		});
 	}

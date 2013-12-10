@@ -81,6 +81,54 @@ public class SharepointClient {
 		return result;
 	}
 	
+	public OfficeFuture<String> getWebTitle() {
+		HttpConnection connection = Platform.createHttpConnection();
+		
+		Request request = new Request("POST");
+		
+		request.setUrl(mSiteUrl + "_api/web/title");
+		
+		prepareRequest(request);
+		
+		final OfficeFuture<String> result = new OfficeFuture<String>();
+		HttpConnectionFuture future = connection.execute(request);
+		
+		future.done(new Action<Response>() {
+			
+			@Override
+			public void run(Response response) throws Exception {
+				
+				if (isValidStatus(response.getStatus())) {
+					String responseContent = response.readToEnd();
+					
+					JSONObject json = new JSONObject(responseContent);
+					
+					result.setResult(json.getJSONObject("d").getString("Title"));
+				} else {
+					result.triggerError(new Exception(response.readToEnd()));
+				}
+			}
+		});
+		
+		future.onError(new ErrorCallback() {
+			
+			@Override
+			public void onError(Throwable error) {
+				result.triggerError(error);
+			}
+		});
+		
+		future.onTimeout(new ErrorCallback() {
+			
+			@Override
+			public void onError(Throwable error) {
+				result.triggerError(error);
+			}
+		});
+
+		return result;
+	}
+	
 	public OfficeFuture<SPList> getList(String listName) {
 		HttpConnection connection = Platform.createHttpConnection();
 		
@@ -164,6 +212,54 @@ public class SharepointClient {
 					
 					JSONObject json = new JSONObject(responseContent);
 					result.setResult(SPListItem.listFromJson(json));
+				} else {
+					result.triggerError(new Exception(response.readToEnd()));
+				}
+			}
+		});
+		
+		future.onError(new ErrorCallback() {
+			
+			@Override
+			public void onError(Throwable error) {
+				result.triggerError(error);
+			}
+		});
+		
+		future.onTimeout(new ErrorCallback() {
+			
+			@Override
+			public void onError(Throwable error) {
+				result.triggerError(error);
+			}
+		});
+
+		return result;
+	}
+	
+	public OfficeFuture<List<SPListField>> getListFields(String listTitle) {
+		HttpConnection connection = Platform.createHttpConnection();
+		
+		Request request = new Request("GET");
+		
+		String getListUrl = mSiteUrl + "_api/web/lists/GetByTitle('%s')/Fields"; 
+		request.setUrl(String.format(getListUrl, listTitle));
+		
+		prepareRequest(request);
+		
+		final OfficeFuture<List<SPListField>> result = new OfficeFuture<List<SPListField>>();
+		HttpConnectionFuture future = connection.execute(request);
+		
+		future.done(new Action<Response>() {
+			
+			@Override
+			public void run(Response response) throws Exception {
+				
+				if (isValidStatus(response.getStatus())) {
+					String responseContent = response.readToEnd();
+					
+					JSONObject json = new JSONObject(responseContent);
+					result.setResult(SPListField.listFromJson(json));
 				} else {
 					result.triggerError(new Exception(response.readToEnd()));
 				}

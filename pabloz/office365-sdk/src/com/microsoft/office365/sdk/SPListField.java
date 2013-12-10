@@ -7,22 +7,20 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class SPListItem {
+public class SPListField {
 
-	private int mId;
-	private String mGUID;
-	
+	private String mEntityPropertyName;
 	private String mTitle;
 	private JSONObject mJsonData;
 	
-	public static List<SPListItem> listFromJson(JSONObject json) throws JSONException {
-		List<SPListItem> list = new ArrayList<SPListItem>();
+	public static List<SPListField> listFromJson(JSONObject json) throws JSONException {
+		List<SPListField> list = new ArrayList<SPListField>();
 		
 		JSONArray results = json.getJSONObject("d").getJSONArray("results");
 		
 		for (int i = 0; i < results.length(); i++) {
 			JSONObject result = results.getJSONObject(i);
-			SPListItem item = new SPListItem(result, true);
+			SPListField item = new SPListField(result, true);
 			list.add(item);
 		}
 		
@@ -30,11 +28,11 @@ public class SPListItem {
 	}
 	
 	
-	public SPListItem(JSONObject json) throws JSONException {
+	public SPListField(JSONObject json) throws JSONException {
 		this(json, false);
 	}
 	
-	public SPListItem(JSONObject json, boolean isPlainItem) throws JSONException {
+	public SPListField(JSONObject json, boolean isPlainItem) throws JSONException {
 		if (isPlainItem) {
 			initialize(json);
 		} else {
@@ -45,8 +43,7 @@ public class SPListItem {
 	private void initialize(JSONObject json) throws JSONException {
 		mJsonData = json;
 		
-		setId(mJsonData.getInt("Id"));
-		setGUID(mJsonData.getString("GUID"));
+		setEntityPropertyName(mJsonData.getString("EntityPropertyName"));
 		setTitle(mJsonData.getString("Title"));
 	}
 
@@ -54,15 +51,6 @@ public class SPListItem {
 		return mJsonData.get(field);
 	}
 
-
-	public int getId() {
-		return mId;
-	}
-
-
-	public void setId(int id) {
-		mId = id;
-	}
 
 
 	public String getTitle() {
@@ -75,13 +63,13 @@ public class SPListItem {
 	}
 
 
-	public String getGUID() {
-		return mGUID;
+	public String getEntityPropertyName() {
+		return mEntityPropertyName;
 	}
 
 
-	public void setGUID(String gUID) {
-		mGUID = gUID;
+	public void setEntityPropertyName(String entityPropertyName) {
+		mEntityPropertyName = entityPropertyName;
 	}
 
 }
