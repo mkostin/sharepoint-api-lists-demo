@@ -21,12 +21,20 @@ import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.network.auth.AuthType;
 import com.example.sharepoint.client.network.auth.UserIdentity;
 import com.example.sharepoint.client.network.ntlm.NTLMSchemeFactory;
+import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataEntityRequest;
+import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataRetrieveRequestFactory;
+import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
+import com.msopentech.odatajclient.engine.data.ODataEntity;
+import com.msopentech.odatajclient.engine.data.ODataProperty;
+import com.msopentech.odatajclient.engine.uri.ODataURIBuilder;
 
 /**
  * SP Lists list retrieval operation.
  */
 public class ListsOperation extends HttpOperation {
 
+    private ODataCollectionValue result;
+    
     public ListsOperation(OnOperaionExecutionListener listener, AuthType authType, Context context) {
         super(listener, authType, context);
     }
@@ -106,12 +114,43 @@ public class ListsOperation extends HttpOperation {
         return false;
     }
 
-    protected boolean handleServerResponse(String response) {
+    @Override
+    public void execute() {
+        ODataURIBuilder uriBuilder = new ODataURIBuilder(Constants.SP_BASE_URL);
+        uriBuilder.appendEntityTypeSegment("Web/Lists");
+        ODataEntityRequest req = ODataRetrieveRequestFactory.getEntityRequest(uriBuilder.build());
+        for (Header header: getRequestHeaders()) {
+            req.addCustomHeader(header.getName(), header.getValue());
+        }
+        
+        ODataEntity res = req.execute().getBody();
+        
+        boolean isSucceeded = handleServerResponse(res);
+        if (mListener != null) {
+            mListener.onExecutionComplete(this, isSucceeded);
+        }
+    }
+
+    protected boolean handleServerResponse(ODataEntity response) {
+        try {
+            for (ODataProperty p: response.getProperties()) {
+                result = p.getComplexValue().get("results").getCollectionValue();
+            }
+            
         return true;
+        } catch (Exception e) {
+            Logger.logApplicationException(e, getClass().getSimpleName() + ".handleServerResponse(): Error.");
+        }
+        
+        return false;
     }
 
     @Override
     protected String getServerUrl() {
         return Constants.SP_LISTS_URL;
+    }
+    
+    public ODataCollectionValue getResult() {
+        return result;
     }
 }

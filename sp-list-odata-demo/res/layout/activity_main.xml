@@ -10,12 +10,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical" >
-
 	    <TextView
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
@@ -24,54 +18,20 @@
 	        android:paddingTop="5dip"
 	        android:textAppearance="?android:attr/textAppearanceMedium"
 	        android:textColor="@android:color/background_dark"
-	        android:text="Metadata Schemes:"
+	        android:text="Availiable lists:"
 	        android:textSize="16dp" />
 
-	    <ScrollView
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent" >
-
-	        <TextView
-	            android:id="@+id/response_view_metadata"
-	            android:layout_width="match_parent"
-	            android:layout_height="wrap_content"
-	            android:maxLength="9000"
-	            android:scrollbars="vertical"
-	            android:text="@string/pending_request"
-	            android:textColor="@android:color/black" />
-	        </ScrollView>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical" >
-
-	    <TextView
+	    <ListView
+	        android:id="@+id/available_lists"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
-	        android:paddingBottom="5dip"
-	        android:paddingLeft="5dip"
-	        android:paddingTop="5dip"
-	        android:textAppearance="?android:attr/textAppearanceMedium"
-	        android:textColor="@android:color/background_dark"
-	        android:text="Lists:"
-	        android:textSize="16dp" />
-
-	    <ScrollView
+	        android:visibility="gone"
+	        />
+	    
+	    <TextView 
+	        android:id="@+id/pending_request_text_stub"
 	        android:layout_width="match_parent"
-	        android:layout_height="match_parent" >
-
-	        <TextView
-	            android:id="@+id/response_view_lists"
-	            android:layout_width="match_parent"
-	            android:layout_height="wrap_content"
-	            android:maxLength="9000"
-	            android:scrollbars="vertical"
-	            android:text="@string/pending_request"
-	            android:textColor="@android:color/black" />
-	        </ScrollView>
-    </LinearLayout>
-
+	        android:layout_height="match_parent"
+	        android:text="Pending request..."
+	        />
 </LinearLayout>

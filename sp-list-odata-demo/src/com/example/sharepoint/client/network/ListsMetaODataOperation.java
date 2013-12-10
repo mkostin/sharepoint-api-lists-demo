@@ -40,6 +40,28 @@ public class ListsMetaODataOperation extends HttpOperation {
     @Override
     public void execute() {
         try {
+
+//            if (authType == AuthType.Office365) {
+//                Configuration.setHttpClientFactory(new AbstractCookieAuthHttpClientFactory() {
+//                    @Override
+//                    protected List<BasicClientCookie> getCookies() {
+//                        List<BasicClientCookie> list = new ArrayList<BasicClientCookie>();
+//
+//                        BasicClientCookie rtfaCookie = new BasicClientCookie("rtFa", Constants.COOKIE_RT_FA);
+//                        rtfaCookie.setDomain(".sharepoint.com");
+//                        rtfaCookie.setPath("/");
+//                        list.add(rtfaCookie);
+//
+//                        BasicClientCookie fedCookie = new BasicClientCookie("FedAuth", Constants.COOKIE_FED_AUTH);
+//                        fedCookie.setDomain(".sharepoint.com");
+//                        fedCookie.setPath("/");
+//                        list.add(fedCookie);
+//
+//                        return list;
+//                    }
+//                });
+//            }
+
             ODataMetadataRequest req = ODataRetrieveRequestFactory.getMetadataRequest(Constants.SP_METADATA);
 
             if (authType == AuthType.Office365) {

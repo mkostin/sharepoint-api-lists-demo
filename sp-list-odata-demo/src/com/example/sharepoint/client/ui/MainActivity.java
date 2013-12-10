@@ -1,30 +1,44 @@
 package com.example.sharepoint.client.ui;
 
+import java.util.HashMap;
+import java.util.Iterator;
+
 import android.app.Activity;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.View;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.sharepoint.client.R;
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.network.BaseOperation;
 import com.example.sharepoint.client.network.BaseOperation.OnOperaionExecutionListener;
-import com.example.sharepoint.client.network.ListsMetaODataOperation;
+import com.example.sharepoint.client.network.ListReadTask;
 import com.example.sharepoint.client.network.ListsOperation;
-import com.example.sharepoint.client.network.auth.AuthType;
+import com.example.sharepoint.client.network.ListsReceiveTask;
+import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
+import com.msopentech.odatajclient.engine.data.ODataComplexValue;
+import com.msopentech.odatajclient.engine.data.ODataValue;
 
 /**
  * Sample activity displaying request results.
  */
 public class MainActivity extends Activity implements OnOperaionExecutionListener {
 
+    /**
+     * Maps list names and guids
+     */
+    private HashMap<String, String> guids;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        new ListsReceiveTask().execute();
-        new MetadataReceiveTask().execute();
+        new ListsReceiveTask(this, this).execute();
     }
 
     @Override
@@ -34,51 +48,58 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
     }
 
     @Override
-    public void onExecutionComplete(final BaseOperation operation, boolean executionResult) {
+    public void onExecutionComplete(final BaseOperation operation, final boolean executionResult) {
         runOnUiThread(new Runnable() {
             public void run() {
-                try {
-                    TextView view = null;
-                    if(operation instanceof ListsOperation) {
-                        view = ((TextView) MainActivity.this.findViewById(R.id.response_view_lists));
-                    } else if(operation instanceof ListsMetaODataOperation) {
-                        view = ((TextView) MainActivity.this.findViewById(R.id.response_view_metadata));
-                    }
-                    if(view != null) {
-                        view.setText(operation.getResponse());
-                    }
-                } catch (Exception e) {
-                    Logger.logApplicationException(e, getClass().getSimpleName() + ".run(): Error.");
-                }
+                displayListsToView(operation, executionResult);
             }
         });
     }
 
-    public class MetadataReceiveTask extends AsyncTask<Void, Void, String> {
-        @Override
-        protected String doInBackground(Void... params) {
-            try {
-                ListsMetaODataOperation operMeta = new ListsMetaODataOperation(MainActivity.this, AuthType.Office365, MainActivity.this);
-                operMeta.execute();
-                return operMeta.getResponse();
-            } catch (Exception e) {
-                Logger.logApplicationException(e, getClass().getSimpleName() + ".doInBackground(): Error.");
+    /**
+     * Displays lists to ListView
+     * 
+     * @param operation
+     * @param executionResult
+     */
+    private void displayListsToView(final BaseOperation operation, final boolean executionResult) {
+        try {
+            if (executionResult != true) {
+                ((TextView) MainActivity.this.findViewById(R.id.pending_request_text_stub)).setText("Error");
+                return;
             }
-            return null;
-        }
-    }
 
-    public class ListsReceiveTask extends AsyncTask<Void, Void, String> {
-        @Override
-        protected String doInBackground(Void... params) {
-            try {
-                ListsOperation operLists = new ListsOperation(MainActivity.this, AuthType.Office365, MainActivity.this);
-                operLists.execute();
-                return operLists.getResponse();
-            } catch (Exception e) {
-                Logger.logApplicationException(e, getClass().getSimpleName() + ".doInBackground(): Error.");
+            ODataCollectionValue result = ((ListsOperation) operation).getResult();
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1);
+            Iterator<ODataValue> iter = result.iterator();
+            guids = new HashMap<String, String>();
+            while (iter.hasNext()) {
+                ODataComplexValue value = (ODataComplexValue) iter.next().asComplex();
+                String title = value.get("Title").getPrimitiveValue().toString();
+                String guid = value.get("Id").getPrimitiveValue().toString();
+                guids.put(title, guid);
+                adapter.add(title);
             }
-            return null;
+
+            ListView lists = (ListView) MainActivity.this.findViewById(R.id.available_lists);
+            lists.setAdapter(adapter);
+            lists.setVisibility(View.VISIBLE);
+            MainActivity.this.findViewById(R.id.pending_request_text_stub).setVisibility(View.GONE);
+
+            lists.setOnItemClickListener(new OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    try {
+                        new ListReadTask(new ListReadOperationExecutionListener(MainActivity.this), MainActivity.this).execute(guids
+                                .get(((TextView) view).getText()));
+                    } catch (Exception e) {
+                        Logger.logApplicationException(e, getClass().getSimpleName() + ".onItemClick(): Error.");
+                    }
+                }
+            });
+
+        } catch (Exception e) {
+            Logger.logApplicationException(e, getClass().getSimpleName() + ".run(): Error.");
+            ((TextView) MainActivity.this.findViewById(R.id.pending_request_text_stub)).setText("Error");
         }
     }
 }
