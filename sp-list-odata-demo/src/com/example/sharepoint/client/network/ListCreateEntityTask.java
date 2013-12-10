@@ -8,28 +8,27 @@ import com.example.sharepoint.client.network.BaseOperation.OnOperaionExecutionLi
 import com.example.sharepoint.client.network.auth.AuthType;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
 
-public class ListReadTask extends AsyncTask<String, Void, ODataEntity> {
+public class ListCreateEntityTask extends AsyncTask<ODataEntity, Void, Boolean> {
 
-    private final OnOperaionExecutionListener listener;
-    
-    private final Context context;
-    
-    public ListReadTask(OnOperaionExecutionListener listener, Context ctx) {
+    private OnOperaionExecutionListener listener;
+
+    private Context context;
+
+    public ListCreateEntityTask(OnOperaionExecutionListener listener, Context ctx) {
         this.listener = listener;
-        context = ctx;
+        this.context = ctx;
     }
-    
+
     @Override
-    protected ODataEntity doInBackground(String... params) {
+    protected Boolean doInBackground(ODataEntity... params) {
         try {
-            ListReadOperation oper = new ListReadOperation(listener, AuthType.Office365, context, params[0]);
+            ListCreateEntityOperation oper = new ListCreateEntityOperation(listener, AuthType.Office365, context, params[0]);
             oper.execute();
             return oper.getResult();
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".doInBackground(): Error.");
         }
-        
-        return null;
+        return false;
     }
 
 }

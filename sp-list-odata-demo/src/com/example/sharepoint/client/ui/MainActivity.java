@@ -7,8 +7,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -17,11 +17,14 @@ import com.example.sharepoint.client.R;
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.network.BaseOperation;
 import com.example.sharepoint.client.network.BaseOperation.OnOperaionExecutionListener;
+import com.example.sharepoint.client.network.ListCreateEntityTask;
 import com.example.sharepoint.client.network.ListReadTask;
+import com.example.sharepoint.client.network.ListUpdateTask;
 import com.example.sharepoint.client.network.ListsOperation;
 import com.example.sharepoint.client.network.ListsReceiveTask;
 import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
 import com.msopentech.odatajclient.engine.data.ODataComplexValue;
+import com.msopentech.odatajclient.engine.data.ODataEntity;
 import com.msopentech.odatajclient.engine.data.ODataValue;
 
 /**
@@ -89,8 +92,9 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
             lists.setOnItemClickListener(new OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     try {
-                        new ListReadTask(new ListReadOperationExecutionListener(MainActivity.this), MainActivity.this).execute(guids
-                                .get(((TextView) view).getText()));
+                        ODataEntity list = new ListReadTask(new ListReadOperationExecutionListener(MainActivity.this), MainActivity.this).execute(
+                                guids.get(((TextView) view).getText())).get();
+                        new ListCreateEntityTask(null, MainActivity.this).execute(list);
                     } catch (Exception e) {
                         Logger.logApplicationException(e, getClass().getSimpleName() + ".onItemClick(): Error.");
                     }

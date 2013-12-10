@@ -1,6 +1,6 @@
 package com.example.sharepoint.client.ui;
 
-import android.content.Context;
+import android.app.Activity;
 import android.widget.Toast;
 
 import com.example.sharepoint.client.network.BaseOperation;
@@ -9,15 +9,20 @@ import com.example.sharepoint.client.network.ListReadOperation;
 
 public class ListReadOperationExecutionListener implements OnOperaionExecutionListener {
 
-    private Context context;
-    
-    public ListReadOperationExecutionListener(Context ctx) {
+    private Activity context;
+
+    public ListReadOperationExecutionListener(Activity ctx) {
         context = ctx;
     }
 
     @Override
-    public void onExecutionComplete(BaseOperation operation, boolean executionResult) {
-         Toast.makeText(context, "Fields count: " + String.valueOf(((ListReadOperation)operation).getResult()), Toast.LENGTH_LONG).show();
+    public void onExecutionComplete(final BaseOperation operation, boolean executionResult) {
+        context.runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(context, "Fields count: " + ((ListReadOperation) operation).getResult().getProperties().size(), Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
     }
 
 }

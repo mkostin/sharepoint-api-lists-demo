@@ -20,10 +20,7 @@ public class ListReadOperation extends HttpOperation {
 
     private String guid;
     
-    /**
-     * Number of fields in returned entity.
-     */
-    private int result = 0;
+    private ODataEntity result = null;
     
     public ListReadOperation(OnOperaionExecutionListener listener, AuthType authType, Context context, String guid) {
         super(listener, authType, context);        
@@ -73,10 +70,7 @@ public class ListReadOperation extends HttpOperation {
 
     private boolean handleServerResponse(ODataEntity res) {
         try {
-            result = 0;
-            for (ODataProperty p: res.getProperties()) {
-                result += p.getComplexValue().size();
-            }
+            result = res;
             
             return true;
         } catch (Exception e) {
@@ -86,7 +80,7 @@ public class ListReadOperation extends HttpOperation {
         return false;
     }
 
-    public int getResult() {
+    public ODataEntity getResult() {
         return result;
     }
 }
