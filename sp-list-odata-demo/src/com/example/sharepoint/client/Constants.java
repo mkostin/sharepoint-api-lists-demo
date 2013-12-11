@@ -1,5 +1,7 @@
 package com.example.sharepoint.client;
 
+import com.example.sharepoint.client.network.auth.AuthType;
+
 /**
  * Stores application public constants such as endpoint URLs, default values, etc.
  */
@@ -47,5 +49,7 @@ public class Constants {
      * Password for authentication (whatever type is used).
      */
     public static final String PASSWORD = "password";
+
+    public static AuthType AUTH_TYPE = AuthType.Office365;
 
 }

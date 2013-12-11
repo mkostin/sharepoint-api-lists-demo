@@ -3,9 +3,9 @@ package com.example.sharepoint.client.network;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.example.sharepoint.client.Constants;
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.network.BaseOperation.OnOperaionExecutionListener;
-import com.example.sharepoint.client.network.auth.AuthType;
 
 public class ListsReceiveTask extends AsyncTask<Void, Void, String> {
     /**
@@ -26,7 +26,7 @@ public class ListsReceiveTask extends AsyncTask<Void, Void, String> {
     @Override
     protected String doInBackground(Void... params) {
         try {
-            ListsOperation operLists = new ListsOperation(this.listener, AuthType.Office365, context);
+            ListsOperation operLists = new ListsOperation(this.listener, Constants.AUTH_TYPE, context);
             operLists.execute();
             return operLists.getResponse();
         } catch (Exception e) {

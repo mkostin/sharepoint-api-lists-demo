@@ -19,7 +19,6 @@ import com.example.sharepoint.client.network.BaseOperation;
 import com.example.sharepoint.client.network.BaseOperation.OnOperaionExecutionListener;
 import com.example.sharepoint.client.network.ListCreateEntityTask;
 import com.example.sharepoint.client.network.ListReadTask;
-import com.example.sharepoint.client.network.ListUpdateTask;
 import com.example.sharepoint.client.network.ListsOperation;
 import com.example.sharepoint.client.network.ListsReceiveTask;
 import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
@@ -41,6 +40,7 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         new ListsReceiveTask(this, this).execute();
     }
 

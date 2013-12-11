@@ -1,0 +1,21 @@
+ListCreateEntityOperation produces following json:
+
+{
+    "odata.type": "SP.Data.TestListItem",
+    "__metadata": {
+        "odata.type": "__metadata",
+        "type": "SP.Data.TestListItem",
+        "type@odata.type": "Edm.String"
+    },
+    "Title": "test",
+    "Title@odata.type": "Edm.String"
+}
+
+The requested minimum is:
+
+{
+    "__metadata": {
+        "type": "SP.Data.TestListItem"
+    },
+    "Title": "test",
+}

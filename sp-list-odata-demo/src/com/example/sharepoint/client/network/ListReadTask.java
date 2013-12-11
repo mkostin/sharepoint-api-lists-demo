@@ -3,9 +3,9 @@ package com.example.sharepoint.client.network;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.example.sharepoint.client.Constants;
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.network.BaseOperation.OnOperaionExecutionListener;
-import com.example.sharepoint.client.network.auth.AuthType;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
 
 public class ListReadTask extends AsyncTask<String, Void, ODataEntity> {
@@ -22,7 +22,7 @@ public class ListReadTask extends AsyncTask<String, Void, ODataEntity> {
     @Override
     protected ODataEntity doInBackground(String... params) {
         try {
-            ListReadOperation oper = new ListReadOperation(listener, AuthType.Office365, context, params[0]);
+            ListReadOperation oper = new ListReadOperation(listener, Constants.AUTH_TYPE, context, params[0]);
             oper.execute();
             return oper.getResult();
         } catch (Exception e) {

@@ -15,6 +15,7 @@ import org.apache.http.params.CoreProtocolPNames;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Base64;
 
 import com.example.sharepoint.client.Constants;
 import com.example.sharepoint.client.logger.Logger;
@@ -34,7 +35,7 @@ import com.msopentech.odatajclient.engine.uri.ODataURIBuilder;
 public class ListsOperation extends HttpOperation {
 
     private ODataCollectionValue result;
-    
+
     public ListsOperation(OnOperaionExecutionListener listener, AuthType authType, Context context) {
         super(listener, authType, context);
     }
@@ -47,6 +48,9 @@ public class ListsOperation extends HttpOperation {
 
             if (authType == AuthType.Office365) {
                 headers.add(new BasicHeader("Cookie", Constants.COOKIE_RT_FA + "; " + Constants.COOKIE_FED_AUTH));
+            } else if (authType == AuthType.Basic) {
+                headers.add(new BasicHeader("Authorization", "Basic "
+                        + Base64.encodeToString((Constants.USERNAME + ":" + Constants.PASSWORD).getBytes(), Base64.DEFAULT).trim()));
             }
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".getRequestHeaders(): Error.");
@@ -67,6 +71,7 @@ public class ListsOperation extends HttpOperation {
 
     protected boolean initializeClient(HttpClient httpClient) {
         try {
+            //CommonsHttpOAuthProvider provider = new CommonsHttpOAuthProvider(requestTokenEndpointUrl, accessTokenEndpointUrl, authorizationWebsiteUrl);
             if (authType == AuthType.NTLM) {
                 ((AbstractHttpClient) httpClient).getAuthSchemes().register("ntlm", new NTLMSchemeFactory());
             }
@@ -84,9 +89,8 @@ public class ListsOperation extends HttpOperation {
 
             switch (authType) {
                 case Basic:
-                    provider.setCredentials(
-                            new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT),
-                            new UsernamePasswordCredentials(Constants.USERNAME, Constants.PASSWORD));
+                    provider.setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), new UsernamePasswordCredentials(
+                            Constants.USERNAME, Constants.PASSWORD));
                     break;
                 case NTLM:
                     // also see initializeClient()
@@ -119,12 +123,12 @@ public class ListsOperation extends HttpOperation {
         ODataURIBuilder uriBuilder = new ODataURIBuilder(Constants.SP_BASE_URL);
         uriBuilder.appendEntityTypeSegment("Web/Lists");
         ODataEntityRequest req = ODataRetrieveRequestFactory.getEntityRequest(uriBuilder.build());
-        for (Header header: getRequestHeaders()) {
+        for (Header header : getRequestHeaders()) {
             req.addCustomHeader(header.getName(), header.getValue());
         }
-        
+
         ODataEntity res = req.execute().getBody();
-        
+
         boolean isSucceeded = handleServerResponse(res);
         if (mListener != null) {
             mListener.onExecutionComplete(this, isSucceeded);
@@ -133,15 +137,15 @@ public class ListsOperation extends HttpOperation {
 
     protected boolean handleServerResponse(ODataEntity response) {
         try {
-            for (ODataProperty p: response.getProperties()) {
+            for (ODataProperty p : response.getProperties()) {
                 result = p.getComplexValue().get("results").getCollectionValue();
             }
-            
-        return true;
+
+            return true;
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".handleServerResponse(): Error.");
         }
-        
+
         return false;
     }
 
@@ -149,7 +153,7 @@ public class ListsOperation extends HttpOperation {
     protected String getServerUrl() {
         return Constants.SP_LISTS_URL;
     }
-    
+
     public ODataCollectionValue getResult() {
         return result;
     }
