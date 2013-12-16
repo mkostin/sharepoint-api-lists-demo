@@ -85,9 +85,9 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				OfficeFuture<Void> credentialsFuture = loadCredentials();
-				credentialsFuture.onError(new DefaultErrorCallback());
-				credentialsFuture.done(new Action<Void>() {
+				loadCredentials()
+					.onError(new DefaultErrorCallback())
+					.done(new Action<Void>() {
 					
 					@Override
 					public void run(Void obj) throws Exception {
@@ -154,9 +154,9 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 
 					@Override
 					protected Void doInBackground(Void... params) {
-						OfficeFuture<Void> credentialsFuture = loadCredentials();
-						credentialsFuture.onError(new DefaultErrorCallback());
-						credentialsFuture.done(new Action<Void>() {
+						loadCredentials()
+							.onError(new DefaultErrorCallback())
+							.done(new Action<Void>() {
 							
 							@Override
 							public void run(Void obj) throws Exception {
@@ -218,10 +218,9 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 					@Override
 					public void run() {
 						try {
-							OfficeFuture<SharepointOnlineCredentials> credentialsFuture = SharepointOnlineCredentials.requestCredentials(that, SHAREPOINT_SITE, CLIENT_ID, REDIRECT_URL, OFFICE_365_DOMAIN, CLIENT_SECRET);
-							
-							credentialsFuture.onError(new DefaultErrorCallback());
-							credentialsFuture.done(new Action<SharepointOnlineCredentials>() {
+							SharepointOnlineCredentials.requestCredentials(that, SHAREPOINT_SITE, CLIENT_ID, REDIRECT_URL, OFFICE_365_DOMAIN, CLIENT_SECRET)
+								.onError(new DefaultErrorCallback())
+								.done(new Action<SharepointOnlineCredentials>() {
 								
 								@Override
 								public void run(SharepointOnlineCredentials credentials) throws Exception {

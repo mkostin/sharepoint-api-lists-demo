@@ -116,7 +116,7 @@ public class OfficeFuture<V> implements Future<V>{
 	 * Handles the completion of the Future. If the future was already completed, it triggers the handler right away.
 	 * @param action The handler
 	 */
-	public void done(Action<V> action) {
+	public OfficeFuture<V> done(Action<V> action) {
 		synchronized (mDoneLock) {
 			mOnDone.add(action);
 			
@@ -130,6 +130,8 @@ public class OfficeFuture<V> implements Future<V>{
 				}
 			}
 		}
+		
+		return this;
 	}
 	
 	/**
@@ -138,7 +140,7 @@ public class OfficeFuture<V> implements Future<V>{
 	 * the handler will be called once per error, right away.
 	 * @param errorCallback The handler
 	 */
-	public void onError(ErrorCallback errorCallback) {
+	public OfficeFuture<V> onError(ErrorCallback errorCallback) {
 		synchronized (mErrorLock) {
 			mErrorCallback.add(errorCallback);
 
@@ -149,6 +151,8 @@ public class OfficeFuture<V> implements Future<V>{
 				}
 			}
 		}
+		
+		return this;
 	}
 
 	/**
