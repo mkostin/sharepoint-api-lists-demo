@@ -10,12 +10,15 @@ import com.microsoft.office365.sdk.Action;
 import com.microsoft.office365.sdk.Credentials;
 import com.microsoft.office365.sdk.ErrorCallback;
 import com.microsoft.office365.sdk.OfficeFuture;
+import com.microsoft.office365.sdk.SPFieldUrlValue;
+import com.microsoft.office365.sdk.SPFile;
 import com.microsoft.office365.sdk.SPList;
 import com.microsoft.office365.sdk.SPListField;
 import com.microsoft.office365.sdk.SharepointClient;
 import com.microsoft.office365.sdk.SharepointOnlineCredentials;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -38,6 +41,7 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 	
 	private Credentials mCredentials = null;
 	
+	private String mPictureUrl = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +49,8 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 		setContentView(R.layout.activity_create_record_and_upload_file);
 		
 		setTitle("Sharepoint Online Demo");
+		
+		findViewById(R.id.btnLoadValues).setEnabled(false);
 		
 		findViewById(R.id.btnLoadValues).setOnClickListener(new View.OnClickListener() {
 			
@@ -75,43 +81,63 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 		
 		final int number = n;
 		
-		
-		OfficeFuture<Void> credentialsFuture = loadCredentials();
-		credentialsFuture.onError(new DefaultErrorCallback());
-		credentialsFuture.done(new Action<Void>() {
-			
+		new AsyncTask<Void, Void, Void>() {
+
 			@Override
-			public void run(Void obj) throws Exception {
-				
-				try {
-					SharepointClient client = new SharepointClient(SHAREPOINT_SITE, mCredentials);
-	
-					SPList list = client.getList("RegularList").get();
+			protected Void doInBackground(Void... params) {
+				OfficeFuture<Void> credentialsFuture = loadCredentials();
+				credentialsFuture.onError(new DefaultErrorCallback());
+				credentialsFuture.done(new Action<Void>() {
 					
-					List<SPListField> fields = client.getListFields("RegularList").get();
-					
-					String numberColumnFieldName = null;
-					for (SPListField field : fields) {
-						if (field.getTitle().equals("NumberColumn")) {
-							numberColumnFieldName = field.getEntityPropertyName();
+					@Override
+					public void run(Void obj) throws Exception {
+						
+						try {
+							SharepointClient client = new SharepointClient(SHAREPOINT_SITE, mCredentials);
+			
+							SPList list = client.getList("RegularList").get();
+							
+							List<SPListField> fields = client.getListFields("RegularList").get();
+							
+							String numberColumnFieldName = getColumnName("NumberColumn", fields);
+							String pictureColumnFieldName = getColumnName("PictureColumn", fields);
+							
+							Map<String, Object> values = new HashMap<String, Object>();
+							values.put("Title", text);
+							values.put(numberColumnFieldName, number); // EntityPropertyName[NumberColumn]
+							
+							if (mPictureUrl != null) {
+								values.put(pictureColumnFieldName, SPFieldUrlValue.getJsonForUrl(mPictureUrl, "Uploaded picture"));
+							}
+							
+							client.insertListItem(list, values).get();
+							
+							createAndShowDialog("Values created", "Success!");
+						
+						} catch (Throwable e) {
+							createAndShowDialog(e);
 						}
 					}
-					
-					Map<String, Object> values = new HashMap<String, Object>();
-					values.put("Title", text);
-					values.put(numberColumnFieldName, number); // EntityPropertyName[NumberColumn]
-					
-					client.insertListItem(list, values).get();
-					
-					createAndShowDialog("Values created", "Success!");
+				});
 				
-				} catch (Throwable e) {
-					createAndShowDialog(e);
-				}
+				return null;
 			}
-		});
+			
+		}.execute();
+		
+		
 	}
 	
+	protected String getColumnName(String columnName, List<SPListField>fields ) {
+		for (SPListField field : fields) {
+			if (field.getTitle().equals(columnName)) {
+				return field.getEntityPropertyName();
+			}
+		}
+		
+		return null;
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -139,14 +165,23 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 									SharepointClient client = new SharepointClient(SHAREPOINT_SITE, mCredentials);
 									String fileName = UUID.randomUUID().toString();
 					
-									client.uploadFile("DocLib", fileName + ".jpg", byteArray).get();
+									SPFile file = client.uploadFile("DocLib", fileName + ".jpg", byteArray).get();
 									
+									mPictureUrl = extractServerUrl(SHAREPOINT_SITE) + file.getServerRelativeURL();
+									
+									runOnUiThread(new Runnable() {
+										
+										@Override
+										public void run() {
+											findViewById(R.id.btnLoadValues).setEnabled(true);
+										}
+									});
 									createAndShowDialog("Photo uploaded", "Success!");
 								
 								} catch (Throwable e) {
 									createAndShowDialog(e);
 								}
-							}
+							}							
 						});
 						
 						return null;
@@ -155,6 +190,12 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 				}.execute();
 			}
 		}
+	}
+	
+	private String extractServerUrl(String sharepointSite) {
+		Uri uri = Uri.parse(sharepointSite);
+		
+		return uri.getScheme() + "://" + uri.getHost();
 	}
 	
 	private void uploadPhoto() {

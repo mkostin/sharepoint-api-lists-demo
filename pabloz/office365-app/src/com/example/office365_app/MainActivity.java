@@ -78,7 +78,7 @@ public class MainActivity extends Activity {
 					String title = titleFuture.get(); //wait for completion
 					log("Title: " + title, "Success!");
 					
-					OfficeFuture<Void> uploadFuture = mClient.uploadFile("DocLib", "textFile.txt", "Hello world!".getBytes());
+					OfficeFuture<?> uploadFuture = mClient.uploadFile("DocLib", "textFile.txt", "Hello world!".getBytes());
 					
 					uploadFuture.get(); //wait for completion
 					

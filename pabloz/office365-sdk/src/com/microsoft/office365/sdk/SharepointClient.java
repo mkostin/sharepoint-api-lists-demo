@@ -363,8 +363,8 @@ public class SharepointClient {
 		return result;
 	}
 	
-	public OfficeFuture<Void> uploadFile(final String documentLibraryName, final String fileName, final byte[] fileContent) {
-		final OfficeFuture<Void> result = new OfficeFuture<Void>();
+	public OfficeFuture<SPFile> uploadFile(final String documentLibraryName, final String fileName, final byte[] fileContent) {
+		final OfficeFuture<SPFile> result = new OfficeFuture<SPFile>();
 		
 		OfficeFuture<String> digestFuture = getFormDigest();
 		digestFuture.onError(new ErrorCallback() {
@@ -399,10 +399,9 @@ public class SharepointClient {
 					public void run(Response response) throws Exception {
 						
 						if (isValidStatus(response.getStatus())) {
-							//String responseContent = response.readToEnd();
-							
-							//JSONObject json = new JSONObject(responseContent);
-							result.setResult(null);
+							String responseContent = response.readToEnd();
+							SPFile spFile = new SPFile(new JSONObject(responseContent));
+							result.setResult(spFile);
 						} else {
 							result.triggerError(new Exception(response.readToEnd()));
 						}

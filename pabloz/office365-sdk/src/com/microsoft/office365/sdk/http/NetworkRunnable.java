@@ -34,6 +34,7 @@ class NetworkRunnable implements Runnable {
 	@Override
     public void run() {
         try {
+        	int responseCode = -1;
         	synchronized (mCloseLock) {
         		if (!mFuture.isCancelled()) {
 	        		if (mRequest == null) {
@@ -42,13 +43,19 @@ class NetworkRunnable implements Runnable {
 	                }
 	
 	                mConnection = createHttpURLConnection(mRequest);
-	
-	                mResponseStream = mConnection.getInputStream();
+	                
+	                responseCode = mConnection.getResponseCode();
+	                
+	                if (responseCode >= 400) {
+	                	mResponseStream = mConnection.getErrorStream();
+	                } else {
+	                	mResponseStream = mConnection.getInputStream();
+	                }                
         		}
 			}        	
             
         	if (mResponseStream != null && !mFuture.isCancelled()) {
-        		mFuture.setResult(new StreamResponse(mResponseStream, mConnection.getResponseCode(), mConnection.getHeaderFields()));
+        		mFuture.setResult(new StreamResponse(mResponseStream, responseCode, mConnection.getHeaderFields()));
         	}
         } catch (Exception e) {
         	if (!mFuture.isCancelled()) {
