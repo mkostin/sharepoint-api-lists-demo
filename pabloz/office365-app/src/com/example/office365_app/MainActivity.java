@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		((Button)findViewById(R.id.button1)).setOnClickListener(new View.OnClickListener() {
+		((Button)findViewById(R.id.btnLoadValues)).setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
