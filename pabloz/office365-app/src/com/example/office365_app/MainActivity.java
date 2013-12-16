@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.net.Credentials;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
@@ -21,7 +19,6 @@ import com.microsoft.office365.sdk.SPListField;
 import com.microsoft.office365.sdk.SPListItem;
 import com.microsoft.office365.sdk.SharepointClient;
 import com.microsoft.office365.sdk.SharepointOnlineCredentials;
-import com.microsoft.office365.sdk.http.BasicAuthenticationCredentials;
 
 public class MainActivity extends Activity {
 
@@ -143,16 +140,8 @@ public class MainActivity extends Activity {
 		return true;
 	}
 	
-	/**
-	 * Creates a dialog and shows it
-	 * 
-	 * @param message
-	 *            The dialog message
-	 * @param title
-	 *            The dialog title
-	 */
 	private void log(final String message, final String title) {
-		final Activity that = this;
+		//final Activity that = this;
 		runOnUiThread(new Runnable() {
 			
 			@Override

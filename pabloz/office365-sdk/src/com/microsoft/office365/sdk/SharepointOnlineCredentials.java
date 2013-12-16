@@ -1,6 +1,5 @@
 package com.microsoft.office365.sdk;
 
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -116,6 +115,7 @@ public class SharepointOnlineCredentials implements Credentials {
 	
 
 	protected static String encode(String clientId) {
+		@SuppressWarnings("deprecation")
 		String encoded = URLEncoder.encode(clientId);
 		return encoded;
 	}

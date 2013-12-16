@@ -22,7 +22,7 @@ public class Platform {
 	 * @return An HttpConnection
 	 */
 	public static HttpConnection createHttpConnection() {
-		if (true || isAndroid() && Build.VERSION.SDK_INT <= Build.VERSION_CODES.FROYO) {
+		if (isAndroid() && Build.VERSION.SDK_INT <= Build.VERSION_CODES.FROYO) {
 			return new AndroidHttpConnection();
 		} else {
 			return new JavaHttpConnection();

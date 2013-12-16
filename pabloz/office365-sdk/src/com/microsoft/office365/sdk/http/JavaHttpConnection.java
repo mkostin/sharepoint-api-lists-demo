@@ -1,7 +1,5 @@
 package com.microsoft.office365.sdk.http;
 
-import com.microsoft.office365.sdk.http.HttpConnectionFuture.ResponseCallback;
-
 
 /**
  * Java HttpConnection implementation, based on HttpURLConnection and 

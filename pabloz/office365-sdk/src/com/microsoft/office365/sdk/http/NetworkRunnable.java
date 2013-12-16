@@ -7,10 +7,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
-import com.microsoft.office365.sdk.http.HttpConnectionFuture.ResponseCallback;
-
-
-
 /**
  * Runnable that executes a network operation
  */
