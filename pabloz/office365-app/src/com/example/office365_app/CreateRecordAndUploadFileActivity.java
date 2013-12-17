@@ -1,6 +1,7 @@
 package com.example.office365_app;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.Menu;
 import android.view.View;
@@ -40,6 +42,7 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 	final static String CLIENT_SECRET = "OCT+qIaOXMEmaQ5slKM7dd+24JcLUimWpSiGlqUHYUg=";
 	
 	private Credentials mCredentials = null;
+	private String mSharepointList = null;
 	
 	private String mPictureUrl = null;
 	
@@ -51,6 +54,7 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 		setTitle("Sharepoint Online Demo");
 		
 		findViewById(R.id.btnLoadValues).setEnabled(false);
+		findViewById(R.id.btnUploadPhoto).setEnabled(false);
 		
 		findViewById(R.id.btnLoadValues).setOnClickListener(new View.OnClickListener() {
 			
@@ -67,9 +71,66 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 				uploadPhoto();
 			}
 		});
+		
+		findViewById(R.id.btnSelectList).setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				selectList();
+			}
+		});
+	}
+
+	protected void selectList() {
+		final Activity that = this;
+		
+		loadCredentials()
+			.onError(new DefaultErrorCallback())
+			.done(new Action<Void>() {
+				
+				@Override
+				public void run(Void obj) throws Exception {
+					SharepointClient client = new SharepointClient(SHAREPOINT_SITE, mCredentials);
+					
+					client.getLists()
+						.onError(new DefaultErrorCallback())
+						.done(new Action<List<SPList>>() {
+							
+							@Override
+							public void run(final List<SPList> lists) throws Exception {
+								final List<String> listTitles = new ArrayList<String>();
+								for (SPList list : lists) {
+									listTitles.add(list.getTitle());
+								}
+								
+								runOnUiThread(new Runnable() {
+									
+									@Override
+									public void run() {
+										AlertDialog.Builder builder = new AlertDialog.Builder(that);
+									    builder
+											.setTitle("Select a list")
+											.setItems(listTitles.toArray(new String[0]), new DialogInterface.OnClickListener() {
+									               public void onClick(DialogInterface dialog, int which) {
+									            	   mSharepointList = listTitles.get(which);
+									            	   findViewById(R.id.btnUploadPhoto).setEnabled(true);
+									           }
+										    });
+									    
+									    builder.create().show();
+									}
+								});
+							}
+						});
+				}
+			});
 	}
 
 	protected void loadValues() {
+		if (mSharepointList == null) {
+			return;
+		}
+		
 		final String text = ((EditText)findViewById(R.id.txtTitle)).getText().toString();
 		String txtNumber = ((EditText)findViewById(R.id.txtNumber)).getText().toString();
 		int n = 0;
@@ -95,7 +156,8 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 						try {
 							SharepointClient client = new SharepointClient(SHAREPOINT_SITE, mCredentials);
 			
-							SPList list = client.getList("RegularList").get();
+							//SPList list = client.getList("RegularList").get();
+							SPList list = client.getList(mSharepointList).get();
 							
 							List<SPListField> fields = client.getListFields("RegularList").get();
 							

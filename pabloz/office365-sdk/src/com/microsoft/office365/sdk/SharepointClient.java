@@ -129,6 +129,54 @@ public class SharepointClient {
 		return result;
 	}
 	
+	public OfficeFuture<List<SPList>> getLists() {
+		HttpConnection connection = Platform.createHttpConnection();
+		
+		Request request = new Request("GET");
+		
+		String getListsUrl = mSiteUrl + "_api/web/lists/"; 
+		request.setUrl(getListsUrl);
+		
+		prepareRequest(request);
+		
+		final OfficeFuture<List<SPList>> result = new OfficeFuture<List<SPList>>();
+		HttpConnectionFuture future = connection.execute(request);
+		
+		future.done(new Action<Response>() {
+			
+			@Override
+			public void run(Response response) throws Exception {
+				
+				if (isValidStatus(response.getStatus())) {
+					String responseContent = response.readToEnd();
+					
+					JSONObject json = new JSONObject(responseContent);
+					result.setResult(SPList.listFromJson(json));
+				} else {
+					result.triggerError(new Exception(response.readToEnd()));
+				}
+			}
+		});
+		
+		future.onError(new ErrorCallback() {
+			
+			@Override
+			public void onError(Throwable error) {
+				result.triggerError(error);
+			}
+		});
+		
+		future.onTimeout(new ErrorCallback() {
+			
+			@Override
+			public void onError(Throwable error) {
+				result.triggerError(error);
+			}
+		});
+
+		return result;
+	}
+	
 	public OfficeFuture<SPList> getList(String listName) {
 		HttpConnection connection = Platform.createHttpConnection();
 		

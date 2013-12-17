@@ -14,7 +14,7 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_x="103dp"
+        android:layout_x="133dp"
         android:layout_y="14dp"
         android:text="Upload Photo" />
 
@@ -57,5 +57,13 @@
         android:layout_x="130dp"
         android:layout_y="344dp"
         android:text="Load Values" />
+
+    <Button
+        android:id="@+id/btnSelectList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="0dp"
+        android:layout_y="20dp"
+        android:text="Select List" />
 
 </AbsoluteLayout>
