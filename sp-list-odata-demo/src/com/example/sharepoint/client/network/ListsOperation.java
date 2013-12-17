@@ -34,19 +34,6 @@ public class ListsOperation extends ODataOperation<ODataEntityRequest, ODataColl
         return ODataRetrieveRequestFactory.getEntityRequest(getServerUrl());
     }
 
-    // TODO: refactor as it is never used
-    protected boolean initializeClient(HttpClient httpClient) {
-        try {
-            if (getAuthenticationType() == AuthType.NTLM) {
-                ((AbstractHttpClient) httpClient).getAuthSchemes().register(NTLM_HTTP_AUTHENTICATION_SCHEME_NAME, new NTLMSchemeFactory());
-            }
-            return true;
-        } catch (Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".initializeClient(): Error.");
-        }
-        return false;
-    }
-
     @Override
     protected boolean handleServerResponse(ODataResponse response) {
         try {
