@@ -4,17 +4,26 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -26,47 +35,112 @@ import org.apache.http.protocol.HTTP;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Pair;
 
 import com.example.sharepoint.client.R;
 import com.example.sharepoint.client.logger.Logger;
-import com.example.sharepoint.client.network.auth.AuthType;
 
 /**
- * Implements standard HTTP operation (without MMS routing). Implements basic functionality to make HTTP requests.
+ * Implements standard HTTP operation using Apache HTTP components. Provides fields for all operations.
  */
-public abstract class HttpOperation extends BaseOperation {
+public abstract class HttpOperation extends NetworkOperation<HttpRequest, String, String> {
 
     /**
-     * Indicates authentication type for this connection. User name and password are retrieved from
-     * preferences.
+     * Operation HTTP status line.
      */
-    protected AuthType authType = AuthType.Undefined;
+    protected String mStatusLine = null;
 
     /**
      * Response code.
      */
     protected int mResponseCode = -1;
 
-    protected Context context;
-
     /**
      * Creates new instance of the class.
      *
      * @param listener Listener to get notifications when operation will be completed.
      */
-    public HttpOperation(OnOperaionExecutionListener listener, AuthType authType, Context context) {
+    public HttpOperation(OnOperaionExecutionListener listener) {
         super(listener);
-        this.context = context;
-        this.authType = authType;
+    }
+
+    /**
+     * Creates new instance of the class.
+     *
+     * @param listener Listener to get notifications when operation will be completed.
+     * @param context Application context.
+     */
+    public HttpOperation(OnOperaionExecutionListener listener, Context context) {
+        super(listener, context);
+    }
+
+    /**
+     * Called during http client setup to set authentication credentials. Should be overridden if necessary. Default implementation does
+     * nothing and returns <code>true</code>.
+     *
+     * @param provider Credentials provider
+     *
+     * @return <code>true</code> if credentials were set correctly, or <code>false</code> in case of error.
+     */
+    protected boolean setCredentials(CredentialsProvider provider) {
+        return true;
+    };
+
+    /**
+     * Called during http client setup. Can be overridden if necessary. Default implementation does nothing and returns <code>true</code>.
+     *
+     * @param provider Credentials provider
+     *
+     * @return <code>true</code> if initialization was successfull, <code>false</code> otherwise.
+     */
+    protected boolean initializeClient(HttpClient httpClient) {
+        return true;
+    }
+
+    /**
+     * Creates and retrieves instance of {@linkplain HttpUriRequest} object initiated with headers and message body (if any) using
+     * {@#getRequestHeaders()} and {@#getPostData()} correspondingly.
+     *
+     * @return Request string representation.
+     */
+    @SuppressWarnings("unchecked")
+    protected HttpUriRequest getRequest() {
+        HttpUriRequest httpMessage = null;
+        try {
+            Object postData = getPostData();
+            if (postData == null) {
+                httpMessage = new HttpGet(getServerUrl());
+            } else {
+                httpMessage = new HttpPost(getServerUrl());
+                if (postData instanceof String) {
+                    ((HttpPost) httpMessage).setEntity(new StringEntity((String) postData, "utf-8"));
+                } else if (postData instanceof List<?>) {
+                    ((HttpPost) httpMessage).setEntity(new UrlEncodedFormEntity((List<NameValuePair>) postData));
+                } else if (postData instanceof byte[]) {
+                    ((HttpPost) httpMessage).setEntity(new ByteArrayEntity((byte[]) postData));
+                }
+            }
+
+            List<Pair<String, String>> headers = getRequestHeaders();
+            if (headers != null && !headers.isEmpty()) {
+                for (Pair<String, String> header : headers) {
+                    httpMessage.setHeader(header.first, header.second);
+                }
+            }
+
+        } catch (final Exception e) {
+            Logger.logApplicationException(e, getClass().getSimpleName() + ".getHttpRequest(): Failed.");
+        }
+        return httpMessage;
     }
 
     @Override
     public void execute() {
         // Checking for Internet connection before operation executing.
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isAvailable() || !networkInfo.isConnected()) {
-            this.mErrorMessage = context.getString(R.string.data_connection_no_data_connection);
+            this.mErrorMessage = mContext.getString(R.string.data_connection_no_data_connection);
             if (mListener != null) mListener.onExecutionComplete(this, false);
             return;
         }
@@ -102,7 +176,7 @@ public abstract class HttpOperation extends BaseOperation {
             initializeClient((DefaultHttpClient) httpClient);
             setCredentials(((DefaultHttpClient) httpClient).getCredentialsProvider());
 
-            HttpUriRequest httpMessage = getHttpRequest();
+            HttpUriRequest httpMessage = getRequest();
 
             HttpResponse response = null;
             Logger.logTraceMessage(HttpOperation.class.getSimpleName() + ".executeOperation(): Trying to connect to " + getServerUrl());
@@ -161,7 +235,7 @@ public abstract class HttpOperation extends BaseOperation {
 
         } catch (Exception e) {
 
-            Logger.logApplicationException(e, BaseOperation.class.getSimpleName() + ": Unable to create SecureHttpClient: " + e.getMessage());
+            Logger.logApplicationException(e, HttpOperation.class.getSimpleName() + ": Unable to create SecureHttpClient: " + e.getMessage());
             return new DefaultHttpClient();
         }
     }
@@ -186,20 +260,9 @@ public abstract class HttpOperation extends BaseOperation {
 
             return new DefaultHttpClient(ccm, params);
         } catch (Exception e) {
-            Logger.logApplicationException(e, BaseOperation.class.getSimpleName() + ": Unable to create TrustAllHttpClient: " + e.getMessage());
+            Logger.logApplicationException(e, HttpOperation.class.getSimpleName() + ": Unable to create TrustAllHttpClient: " + e.getMessage());
             return new DefaultHttpClient();
         }
-    }
-
-    /**
-     * Handles server response.
-     *
-     * @param response Server response.
-     *
-     * @return <code>True</code> if response was successfully parsed with no error, otherwise <code>false</code>.
-     */
-    protected boolean handleServerResponse(String response) {
-        return false;
     }
 
     /**
@@ -212,9 +275,24 @@ public abstract class HttpOperation extends BaseOperation {
     }
 
     /**
-     * @return Authentication type.
+     * Returns data that should be included in the POST request if one is performed. Should be overridden. Not intended to be called
+     * directly. Must return either {@linkplain String} type, or {@linkplain List<NameValuePair>} type object instance or <code>null</code>
+     * if request is of GET type. Default implementation returns <code>null</code>.
+     *
+     * @return Data that should included in the POST request body. Returns <code>null</code> by default.
      */
-    public AuthType getAuthenticationType() {
-        return this.authType;
+    protected Object getPostData() {
+        return null;
     }
+
+    /**
+     * Provides name-value http parameters list that will be included in the request. e.g. "...?name1=value1&...&namen=valueN". Should be
+     * overridden. Not intended to be called directly. Called from {@linkplain #getHttpRequest()}.
+     *
+     * @return Name-value http parameters list. Returns <code>null</code> by default.
+     */
+    protected List<NameValuePair> getRequestParams() {
+        return null;
+    }
+
 }

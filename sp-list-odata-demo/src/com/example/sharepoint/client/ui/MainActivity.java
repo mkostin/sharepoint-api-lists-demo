@@ -12,12 +12,14 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.sharepoint.client.R;
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.network.BaseOperation;
 import com.example.sharepoint.client.network.BaseOperation.OnOperaionExecutionListener;
-import com.example.sharepoint.client.network.ListCreateEntityTask;
+import com.example.sharepoint.client.network.CreateAndDeleteListTask;
+import com.example.sharepoint.client.network.ListEntityCUDTask;
 import com.example.sharepoint.client.network.ListReadTask;
 import com.example.sharepoint.client.network.ListsOperation;
 import com.example.sharepoint.client.network.ListsReceiveTask;
@@ -50,6 +52,7 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
         return true;
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public void onExecutionComplete(final BaseOperation operation, final boolean executionResult) {
         runOnUiThread(new Runnable() {
@@ -61,11 +64,11 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
 
     /**
      * Displays lists to ListView
-     * 
+     *
      * @param operation
      * @param executionResult
      */
-    private void displayListsToView(final BaseOperation operation, final boolean executionResult) {
+    private void displayListsToView(@SuppressWarnings("rawtypes") final BaseOperation operation, final boolean executionResult) {
         try {
             if (executionResult != true) {
                 ((TextView) MainActivity.this.findViewById(R.id.pending_request_text_stub)).setText("Error");
@@ -94,7 +97,18 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
                     try {
                         ODataEntity list = new ListReadTask(new ListReadOperationExecutionListener(MainActivity.this), MainActivity.this).execute(
                                 guids.get(((TextView) view).getText())).get();
-                        new ListCreateEntityTask(null, MainActivity.this).execute(list);
+
+                        new ListEntityCUDTask(new BaseOperation.OnOperaionExecutionListener() {
+                            @SuppressWarnings("rawtypes")
+                            public void onExecutionComplete(BaseOperation operation, final boolean executionResult) {
+                                MainActivity.this.runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this, executionResult == true ? "Success" : "Fail", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        }, MainActivity.this).execute(list);
+                        new CreateAndDeleteListTask(new ListCreationExecutionListener(MainActivity.this), MainActivity.this).execute();
                     } catch (Exception e) {
                         Logger.logApplicationException(e, getClass().getSimpleName() + ".onItemClick(): Error.");
                     }

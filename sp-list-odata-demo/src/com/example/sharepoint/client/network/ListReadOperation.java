@@ -1,83 +1,42 @@
 package com.example.sharepoint.client.network;
 
-import java.util.List;
-
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
+import java.net.URI;
 
 import android.content.Context;
-import android.util.Base64;
 
-import com.example.sharepoint.client.Constants;
 import com.example.sharepoint.client.logger.Logger;
-import com.example.sharepoint.client.network.auth.AuthType;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataEntityRequest;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataRetrieveRequestFactory;
+import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
+import com.msopentech.odatajclient.engine.communication.response.ODataRetrieveResponse;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
-import com.msopentech.odatajclient.engine.uri.ODataURIBuilder;
+import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 
-public class ListReadOperation extends HttpOperation {
+public class ListReadOperation extends ODataOperation<ODataEntityRequest, ODataEntity, ODataPubFormat> {
 
-    private String guid;
+    private String mGUID;
 
-    private int items = 0;
-    
-    private ODataEntity result = null;
+    private int mItems = 0;
 
-    public ListReadOperation(OnOperaionExecutionListener listener, AuthType authType, Context context, String guid) {
-        super(listener, authType, context);
-        this.guid = guid;
+    public ListReadOperation(OnOperaionExecutionListener listener, Context context, String guid) {
+        super(listener, context);
+        this.mGUID = guid;
     }
 
     @Override
-    protected List<Header> getRequestHeaders() {
-        List<Header> headers = super.getRequestHeaders();
-        try {
-            headers.add(new BasicHeader("Accept", "application/json; odata=verbose"));
-
-            if (authType == AuthType.Office365) {
-                headers.add(new BasicHeader("Cookie", Constants.COOKIE_RT_FA + "; " + Constants.COOKIE_FED_AUTH));
-            } else if (authType == AuthType.Basic) {
-                headers.add(new BasicHeader("Authorization", "Basic "
-                        + Base64.encodeToString((Constants.USERNAME + ":" + Constants.PASSWORD).getBytes(), Base64.DEFAULT).trim()));
-            }
-        } catch (Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".getRequestHeaders(): Error.");
-        }
-        return headers;
+    protected ODataEntityRequest getRequest() {
+        String uri = getServerUrl().toString() + SHAREPOINT_LISTS_URL_SUFFIX + "(guid'" + mGUID + "')";
+        return ODataRetrieveRequestFactory.getEntityRequest(URI.create(uri));
     }
 
     @Override
-    protected String getServerUrl() {
-        return Constants.SP_BASE_URL;
-    }
-
-    @Override
-    public void execute() {
+    protected boolean handleServerResponse(ODataResponse response) {
         try {
-            ODataURIBuilder builder = new ODataURIBuilder(getServerUrl()).appendEntityTypeSegment("Web/Lists").appendKeySegment(guid);
-            ODataEntityRequest req = ODataRetrieveRequestFactory.getEntityRequest(builder.build());
-            for (Header h : getRequestHeaders()) {
-                req.addCustomHeader(h.getName(), h.getValue());
-            }
+            ODataEntity res = ((ODataRetrieveResponse<ODataEntity>) response).getBody();
+            mItems = Integer.valueOf(res.getProperty(SHAREPOINT_ROOT_OBJECT_NAME).getComplexValue().get(SHAREPOINT_ITEM_COUNT_FIELD_NAME)
+                    .getPrimitiveValue().toString());
+            mResult = res;
 
-            ODataEntity res = req.execute().getBody();
-
-            boolean isSucceeded = handleServerResponse(res);
-
-            if (mListener != null) {
-                mListener.onExecutionComplete(this, isSucceeded);
-            }
-        } catch (Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".execute(): Error.");
-        }
-    }
-
-    private boolean handleServerResponse(ODataEntity res) {
-        try {
-            items = Integer.valueOf(res.getProperty("d").getComplexValue().get("ItemCount").getPrimitiveValue().toString());
-            result = res;
-            
             return true;
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".handleServerResponse(): Error.");
@@ -86,11 +45,12 @@ public class ListReadOperation extends HttpOperation {
         return false;
     }
 
-    public ODataEntity getResult() {
-        return result;
-    }
-    
+    /**
+     * Returns list intems count.
+     * 
+     * @return items count.
+     */
     public int getItemsCount() {
-        return items;
+        return mItems;
     }
 }

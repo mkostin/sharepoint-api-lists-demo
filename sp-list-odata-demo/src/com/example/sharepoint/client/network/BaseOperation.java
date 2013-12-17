@@ -3,27 +3,14 @@
  */
 package com.example.sharepoint.client.network;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import org.apache.http.Header;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
-
-import com.example.sharepoint.client.logger.Logger;
-
 /**
- * Implements standard HTTP operation. Has common fields for all operations.
+ * Implements abstract operation. Provides common fields for all operations.
+ *
+ * @param <R> Operation result.
  */
-public abstract class BaseOperation {
+public abstract class BaseOperation<R> {
 
     /**
      * Implements listener to notify operation creator when operation is completed.
@@ -50,19 +37,9 @@ public abstract class BaseOperation {
     protected String mErrorMessage = null;
 
     /**
-     * Operation response.
+     * Value to be returned after operation execution is finished.
      */
-    protected String mResponse = null;
-
-    /**
-     * Operation HTTP status line.
-     */
-    protected String mStatusLine = null;
-
-    /**
-     * Operation execution listener.
-     */
-    protected OnOperaionExecutionListener mQueueListener;
+    protected R mResult = null;
 
     /**
      * Listener to get notifications when operation will be completed.
@@ -82,103 +59,6 @@ public abstract class BaseOperation {
      * Executes the operation.
      */
     abstract void execute();
-
-    /**
-     * @return server Url to send request for.
-     */
-    protected abstract String getServerUrl();
-
-    /**
-     * Called during http client setup to set authentication credentials. Should be overridden if necessary. Default implementation does
-     * nothing and returns <code>true</code>.
-     *
-     * @param provider Credentials provider
-     *
-     * @return <code>true</code> if credentials were set correctly, or <code>false</code> in case of error.
-     */
-    protected boolean setCredentials(CredentialsProvider provider) {
-        return true;
-    };
-
-    /**
-     * Called during http client setup. Can be overridden if necessary. Default implementation does nothing and returns <code>true</code>.
-     *
-     * @param provider Credentials provider
-     *
-     * @return <code>true</code> if initialization was successfull, <code>false</code> otherwise.
-     */
-    protected boolean initializeClient(HttpClient httpClient) {
-        return true;
-    }
-
-    /**
-     * Creates and retrieves instance of {@linkplain HttpUriRequest} object initiated with headers and message body (if any) using
-     * {@#getRequestHeaders()} and {@#getPostData()} correspondingly.
-     *
-     * @return Request string representation.
-     */
-    @SuppressWarnings("unchecked")
-    protected HttpUriRequest getHttpRequest() {
-        HttpUriRequest httpMessage = null;
-        try {
-            Object postData = getPostData();
-            if (postData == null) {
-                httpMessage = new HttpGet(getServerUrl());
-            } else {
-                httpMessage = new HttpPost(getServerUrl());
-                if (postData instanceof String) {
-                    ((HttpPost) httpMessage).setEntity(new StringEntity((String) postData, "utf-8"));
-                } else if (postData instanceof List<?>) {
-                    ((HttpPost) httpMessage).setEntity(new UrlEncodedFormEntity((List<NameValuePair>) postData));
-                } else if (postData instanceof byte[]) {
-                    ((HttpPost) httpMessage).setEntity(new ByteArrayEntity((byte[]) postData));
-                }
-            }
-
-            List<Header> headers = getRequestHeaders();
-            if (headers != null && !headers.isEmpty()) {
-                Header[] headersArray = new Header[headers.size()];
-                headers.toArray(headersArray);
-                httpMessage.setHeaders(headersArray);
-            }
-
-        } catch (final Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".getHttpRequest(): Failed.");
-        }
-        return httpMessage;
-    }
-
-    /**
-     * Returns data that should be included in the POST request if one is performed. Should be overridden. Not intended to be called
-     * directly. Must return either {@linkplain String} type, or {@linkplain List<NameValuePair>} type object instance or <code>null</code>
-     * if request is of GET type. Default implementation returns <code>null</code>.
-     *
-     * @return Data that should included in the POST request body. Returns <code>null</code> by default.
-     */
-    protected Object getPostData() {
-        return null;
-    }
-
-    /**
-     * Provides name-value http parameters list that will be included in the request. e.g. "...?name1=value1&...&namen=valueN". Should be
-     * overridden. Not intended to be called directly. Called from {@linkplain #getHttpRequest()}.
-     *
-     * @return Name-value http parameters list. Returns <code>null</code> by default.
-     */
-    protected List<NameValuePair> getRequestParams() {
-        return null;
-    }
-
-    /**
-     * Provides name-value http parameters list that will be included in the request. Should be overridden. Not intended to be called
-     * directly. Called from {@linkplain #getHttpRequest()}.
-     *
-     * @param Request message object instance. Returns empty List by default.
-     */
-    protected List<Header> getRequestHeaders() {
-        List<Header> headers = new ArrayList<Header>();
-        return headers;
-    }
 
     /**
      * Retrieves listener.
@@ -210,7 +90,7 @@ public abstract class BaseOperation {
      *
      * @return Server response or null.
      */
-    public String getResponse() {
-        return mResponse;
+    public R getResult() {
+        return mResult;
     }
 }

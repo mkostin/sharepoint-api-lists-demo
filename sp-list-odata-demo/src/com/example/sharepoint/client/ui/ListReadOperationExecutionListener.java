@@ -19,8 +19,7 @@ public class ListReadOperationExecutionListener implements OnOperaionExecutionLi
     public void onExecutionComplete(final BaseOperation operation, boolean executionResult) {
         context.runOnUiThread(new Runnable() {
             public void run() {
-                Toast.makeText(context, "Items count: " + ((ListReadOperation) operation).getItemsCount(), Toast.LENGTH_LONG)
-                        .show();
+                Toast.makeText(context, "Items count: " + ((ListReadOperation) operation).getItemsCount(), Toast.LENGTH_LONG).show();
             }
         });
     }

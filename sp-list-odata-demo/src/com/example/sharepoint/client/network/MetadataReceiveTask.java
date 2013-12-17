@@ -1,34 +1,22 @@
 package com.example.sharepoint.client.network;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.network.BaseOperation.OnOperaionExecutionListener;
-import com.example.sharepoint.client.network.auth.AuthType;
 
-public class MetadataReceiveTask extends AsyncTask<Void, Void, String> {
-    /**
-     * 
-     */
-    private final OnOperaionExecutionListener listener;
-    
-    private final Context context;
+public class MetadataReceiveTask extends ODataAsyncTask<Void, String> {
 
-    /**
-     * @param mainActivity
-     */
     public MetadataReceiveTask(OnOperaionExecutionListener listener, Context context) {
-        this.listener = listener;
-        this.context = context;
+        super(listener, context);
     }
 
     @Override
     protected String doInBackground(Void... params) {
         try {
-            ListsMetaODataOperation operMeta = new ListsMetaODataOperation(listener, AuthType.Office365, context);
+            ListsMetaODataOperation operMeta = new ListsMetaODataOperation(mListener, mContext);
             operMeta.execute();
-            return operMeta.getResponse();
+            return operMeta.getResult();
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".doInBackground(): Error.");
         }
