@@ -25,9 +25,13 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
@@ -40,6 +44,7 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 	final static String REDIRECT_URL = "https://www.lagash.com/login";
 	final static String OFFICE_365_DOMAIN = "lagash.com";
 	final static String CLIENT_SECRET = "OCT+qIaOXMEmaQ5slKM7dd+24JcLUimWpSiGlqUHYUg=";
+	final static String REFRESH_TOKEN_KEY = "office_refresh_token";
 	
 	private Credentials mCredentials = null;
 	private String mSharepointList = null;
@@ -280,13 +285,17 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 					@Override
 					public void run() {
 						try {
-							SharepointOnlineCredentials.requestCredentials(that, SHAREPOINT_SITE, CLIENT_ID, REDIRECT_URL, OFFICE_365_DOMAIN, CLIENT_SECRET)
+							
+							String refreshToken = getStoredRefreshToken();
+							
+							SharepointOnlineCredentials.requestCredentials(that, SHAREPOINT_SITE, CLIENT_ID, REDIRECT_URL, OFFICE_365_DOMAIN, CLIENT_SECRET, refreshToken)
 								.onError(new DefaultErrorCallback())
 								.done(new Action<SharepointOnlineCredentials>() {
 								
 								@Override
 								public void run(SharepointOnlineCredentials credentials) throws Exception {
 									mCredentials = credentials;
+									storeRefreshToken(credentials.getRefreshToken());
 									dummyFuture.setResult(null);
 								}
 							});
@@ -307,11 +316,31 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 		}
 	}
 
+	private String getStoredRefreshToken() {
+		SharedPreferences preferences = this.getPreferences(Context.MODE_PRIVATE);
+		
+		return preferences.getString(REFRESH_TOKEN_KEY, null);
+	}
+	
+	private void storeRefreshToken(String refreshToken) {
+		Editor editor = this.getPreferences(Context.MODE_PRIVATE).edit();	
+		editor.putString(REFRESH_TOKEN_KEY, refreshToken);
+		editor.commit();
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.create_record_and_upload_file, menu);
 		return true;
+	}
+	
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		//The only menu item is "clear refresh token"
+		storeRefreshToken(null);
+		
+		return super.onMenuItemSelected(featureId, item);
 	}
 	
 

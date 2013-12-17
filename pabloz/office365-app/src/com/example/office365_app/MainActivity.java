@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
 			String office365Domain = "lagash.com";
 			String clientSecret = "OCT+qIaOXMEmaQ5slKM7dd+24JcLUimWpSiGlqUHYUg=";
 			
-			OfficeFuture<SharepointOnlineCredentials> credentialsFuture = SharepointOnlineCredentials.requestCredentials(this, sharepointSite, clientId, redirectUrl, office365Domain, clientSecret);
+			OfficeFuture<SharepointOnlineCredentials> credentialsFuture = SharepointOnlineCredentials.requestCredentials(this, sharepointSite, clientId, redirectUrl, office365Domain, clientSecret, null);
 			
 			credentialsFuture.onError(new DefaultErrorCallback());
 			credentialsFuture.done(new Action<SharepointOnlineCredentials>() {

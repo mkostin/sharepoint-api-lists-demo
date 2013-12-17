@@ -31,12 +31,17 @@ public class SharepointOnlineCredentials implements Credentials {
 
 	private static final String AUTHORIZATION_CODE_REQUEST_URL_FORMAT = "%s_layouts/15/OAuthAuthorize.aspx?mobile=0&client_id=%s&scope=List.Write Web.Write&response_type=code&redirect_uri=%s";
 	private static final String ACCESS_TOKEN_REQUEST_URL_FORMAT = "https://accounts.accesscontrol.windows.net/%s/tokens/OAuth/2";
-	private static final String ACCESS_TOKEN_REQUEST_CONTENT = "grant_type=authorization_code&client_id=%s%%40%s&client_secret=%s&code=%s&redirect_uri=%s&resource=00000003-0000-0ff1-ce00-000000000000%%2F%s%%40%s";
+	private static final String ACCESS_TOKEN_REQUEST_CONTENT_WITH_AUTHORIZATION_CODE = "grant_type=authorization_code&client_id=%s%%40%s&client_secret=%s&code=%s&redirect_uri=%s&resource=00000003-0000-0ff1-ce00-000000000000%%2F%s%%40%s";
+	private static final String ACCESS_TOKEN_REQUEST_CONTENT_WITH_REFRESH_TOKEN= "grant_type=refresh_token&client_id=%s%%40%s&client_secret=%s&refresh_token=%s&redirect_uri=%s&resource=00000003-0000-0ff1-ce00-000000000000%%2F%s%%40%s";
+	private static final String ACCESS_TOKEN_NODE =  "access_token";
+	private static final String REFRESH_TOKEN_NODE =  "refresh_token";
 	
 	private String mToken;
+	private String mRefreshToken;
 	
-	public SharepointOnlineCredentials(String oAuthToken) {
+	public SharepointOnlineCredentials(String oAuthToken, String refreshToken) {
 		mToken = oAuthToken;
+		mRefreshToken = refreshToken;
 	}
 	
 	@Override
@@ -44,7 +49,7 @@ public class SharepointOnlineCredentials implements Credentials {
 		request.addHeader("Authorization", "Bearer " + mToken);
 	}
 	
-	public static OfficeFuture<SharepointOnlineCredentials> requestCredentials(Activity activity, String siteUrl, final String clientId, final String redirectUrl, final String office365Domain, final String clientSecret) throws MalformedURLException {
+	public static OfficeFuture<SharepointOnlineCredentials> requestCredentials(Activity activity, String siteUrl, final String clientId, final String redirectUrl, final String office365Domain, final String clientSecret, final String refreshToken) throws MalformedURLException {
 		final OfficeFuture<SharepointOnlineCredentials> credentialsFuture = new OfficeFuture<SharepointOnlineCredentials>();
 		
 		URL url = new URL(siteUrl);
@@ -52,7 +57,14 @@ public class SharepointOnlineCredentials implements Credentials {
 		
 		String authCodeUrl = String.format(AUTHORIZATION_CODE_REQUEST_URL_FORMAT, siteUrl, clientId, redirectUrl);
 		
-		OfficeFuture<String> codeFuture = showLoginForAcccessCode(activity, authCodeUrl, clientId, redirectUrl);
+		OfficeFuture<String> codeFuture;
+		
+		if (refreshToken == null) {
+			codeFuture = showLoginForAcccessCode(activity, authCodeUrl, clientId, redirectUrl);
+		} else {
+			codeFuture = new OfficeFuture<String>();
+			codeFuture.setResult(null);
+		}
 		
 		codeFuture.done(new Action<String>() {
 			
@@ -65,7 +77,14 @@ public class SharepointOnlineCredentials implements Credentials {
 				String accessTokenRequestUrl = String.format(ACCESS_TOKEN_REQUEST_URL_FORMAT, office365Domain);
 				get.setUrl(accessTokenRequestUrl);
 				
-				String requestContent = String.format(ACCESS_TOKEN_REQUEST_CONTENT, encode(clientId), office365Domain, encode(clientSecret), accessCode, redirectUrl, sharepointHost, office365Domain);
+				String requestContent;
+				
+				if (refreshToken == null) {
+					requestContent = String.format(ACCESS_TOKEN_REQUEST_CONTENT_WITH_AUTHORIZATION_CODE, encode(clientId), office365Domain, encode(clientSecret), accessCode, redirectUrl, sharepointHost, office365Domain);
+				} else {
+					requestContent = String.format(ACCESS_TOKEN_REQUEST_CONTENT_WITH_REFRESH_TOKEN, encode(clientId), office365Domain, encode(clientSecret), refreshToken, redirectUrl, sharepointHost, office365Domain);
+				}
+				
 				get.setContent(requestContent);
 				
 				HttpConnectionFuture accessTokenFuture = connection.execute(get);
@@ -94,9 +113,16 @@ public class SharepointOnlineCredentials implements Credentials {
 						
 						JSONObject json = new JSONObject(content);
 						
-						String accessToken = json.getString("access_token");
+						String accessToken = json.getString(ACCESS_TOKEN_NODE);
 						
-						credentialsFuture.setResult(new SharepointOnlineCredentials(accessToken));
+						String newRefreshToken;
+						if (json.has(REFRESH_TOKEN_NODE)) {
+							newRefreshToken = json.getString(REFRESH_TOKEN_NODE);
+						} else {
+							newRefreshToken = refreshToken;
+						}
+						
+						credentialsFuture.setResult(new SharepointOnlineCredentials(accessToken, newRefreshToken));
 					}
 				});
 			}
@@ -258,6 +284,14 @@ public class SharepointOnlineCredentials implements Credentials {
 		dialog.show();
 		
 		return codeFuture;
+	}
+
+	public String getRefreshToken() {
+		return mRefreshToken;
+	}
+
+	public void setRefreshToken(String mRefreshToken) {
+		this.mRefreshToken = mRefreshToken;
 	}
 	
 }
