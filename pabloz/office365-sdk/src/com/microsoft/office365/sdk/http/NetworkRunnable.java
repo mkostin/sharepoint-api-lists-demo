@@ -57,7 +57,7 @@ class NetworkRunnable implements Runnable {
         	if (mResponseStream != null && !mFuture.isCancelled()) {
         		mFuture.setResult(new StreamResponse(mResponseStream, responseCode, mConnection.getHeaderFields()));
         	}
-        } catch (Exception e) {
+        } catch (Throwable e) {
         	if (!mFuture.isCancelled()) {
 	        	if (mConnection != null) {
 	                mConnection.disconnect();
@@ -65,9 +65,11 @@ class NetworkRunnable implements Runnable {
 	        	
 	            mFuture.triggerError(e);
         	}
+        } finally {
+        	closeStreamAndConnection();
         }
         
-        closeStreamAndConnection();
+        
     }
 
 	/**
