@@ -29,7 +29,10 @@ public class Item implements Serializable {
     /**
      * Item image.
      */
-    private URI mImage;
+    private URI mImageUrl;
+
+    public Item() {
+    }
 
     /**
      * Basic constructor.
@@ -101,5 +104,26 @@ public class Item implements Serializable {
      */
     public String getTitle() {
         return mTitle;
+    }
+
+    /**
+     * Sets image url.
+     *
+     * @param url image url.
+     *
+     * @return Current {@link Item} instance.
+     */
+    public Item setImageUrl(URI url) {
+        this.mImageUrl = url;
+        return this;
+    }
+
+    /**
+     * Gets image url.
+     *
+     * @return Item image url.
+     */
+    public URI getImageUrl() {
+        return mImageUrl;
     }
 }
