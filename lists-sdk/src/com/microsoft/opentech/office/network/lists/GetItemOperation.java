@@ -5,6 +5,7 @@ import java.net.URI;
 
 import android.content.Context;
 
+import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.odata.ODataOperation;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataEntityRequest;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataRetrieveRequestFactory;
@@ -13,29 +14,32 @@ import com.msopentech.odatajclient.engine.communication.response.ODataRetrieveRe
 import com.msopentech.odatajclient.engine.data.ODataEntity;
 import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 
-public class GetListOperation extends ODataOperation<ODataEntityRequest, ODataEntity, ODataPubFormat> {
+public class GetItemOperation extends ODataOperation<ODataEntityRequest, ODataEntity, ODataPubFormat> {
 
-    private String mGUID;
-    
-    public GetListOperation(OnOperaionExecutionListener listener, Context context, String guid) {
+    private String mListGUID;
+
+    private int mItemId;
+
+    public GetItemOperation(OnOperaionExecutionListener listener, Context context, String listGUID, int id) {
         super(listener, context);
-        mGUID = guid;
+        mListGUID = listGUID;
+        mItemId = id;
     }
-    
-    @Override
-    protected ODataEntityRequest getRequest() throws UnsupportedEncodingException, UnsupportedOperationException {
-        return ODataRetrieveRequestFactory.getEntityRequest(getServerUrl());
-    }
-    
+
     @Override
     protected URI getServerUrl() {
-        String url = super.getServerUrl() + SHAREPOINT_LISTS_URL_SUFFIX + "(guid'" + mGUID + "')";
-        return URI.create(url);
+        return URI.create(Configuration.getServerBaseUrl() + SHAREPOINT_LISTS_URL_SUFFIX + "(guid'" + mListGUID + "')/" + SHAREPOINT_ITEMS_URL_SUFFIX + "("
+                + mItemId + ")");
     }
     
     @Override
     protected boolean handleServerResponse(ODataResponse response) {
         mResult = ((ODataRetrieveResponse<ODataEntity>)response).getBody();
         return true;
+    }
+    
+    @Override
+    protected ODataEntityRequest getRequest() throws UnsupportedEncodingException, UnsupportedOperationException {
+        return ODataRetrieveRequestFactory.getEntityRequest(getServerUrl());
     }
 }

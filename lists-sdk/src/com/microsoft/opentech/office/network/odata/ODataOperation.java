@@ -109,8 +109,6 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
             req.addCustomHeader(REQUEST_DIGEST_HEADER_NAME, getDigest());
 
             result = handleServerResponse(req.execute());
-        } catch (Throwable e) {
-            throw new IOException("ODataOperation error: " + e.getMessage(), e);
         } finally {
             if (mListener != null) {
                 mListener.onExecutionComplete(this, result);
