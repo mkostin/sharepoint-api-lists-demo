@@ -1,0 +1,31 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+
+    <TextView 
+        android:id="@+id/get_fields_text_stub"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Getting fields..."
+        />
+    
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:scrollbars="vertical"
+        >
+       	<HorizontalScrollView 
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"        	    
+       	    >
+			<TableLayout 
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content" 
+			    android:id="@+id/item_fields_table"
+			    android:visibility="gone"
+			    />
+	
+		</HorizontalScrollView>
+	</ScrollView>
+</RelativeLayout>

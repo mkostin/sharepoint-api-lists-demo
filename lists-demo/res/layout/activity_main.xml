@@ -41,6 +41,6 @@
 	        android:layout_width="match_parent"
 	        android:text="Add new list"
 	        android:visibility="gone"
-	        android:onClick="addNewList"
+	        android:onClick="onAddButtonClick"
 	        />
 </LinearLayout>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/dialog_create_item_name_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="16dp"
+            android:paddingTop="16dp"
+            android:text="@string/main_item_create_dialog_name"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <EditText
+            android:id="@+id/dialog_create_item_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/dialog_create_item_name"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="16dp"
+            android:layout_toRightOf="@+id/dialog_create_item_url_label"
+            android:ems="10"
+            android:imeOptions="actionDone"
+            android:inputType="textUri"
+            android:text="@string/main_item_image_url_default" />
+
+        <EditText
+            android:id="@+id/dialog_create_item_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/dialog_create_item_name_label"
+            android:layout_alignLeft="@id/dialog_create_item_url"
+            android:layout_alignRight="@id/dialog_create_item_url"
+            android:ems="10"
+            android:inputType="text"
+            android:text="@string/main_item_image_title_default" >
+
+            <requestFocus />
+        </EditText>
+
+        <TextView
+            android:id="@+id/dialog_create_item_url_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/dialog_create_item_url"
+            android:layout_alignLeft="@id/dialog_create_item_name_label"
+            android:text="@string/main_item_create_dialog_address"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/dialog_create_item_attach_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginLeft="4dip"
+        android:background="@drawable/button_background_selector"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/main_item_create_dialog_attach_image"
+        android:textColor="@color/button_text_selector" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp" >
+
+        <TextView
+            android:id="@+id/dialog_create_item_cancel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dip"
+            android:layout_weight="1"
+            android:background="@drawable/button_background_selector"
+            android:padding="8dp"
+            android:text="@string/main_item_create_dialog_cancel"
+            android:textColor="@color/button_text_selector" />
+
+        <TextView
+            android:id="@+id/dialog_create_item_ok"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dip"
+            android:layout_weight="1"
+            android:background="@drawable/button_background_selector"
+            android:padding="8dp"
+            android:text="@string/main_item_create_dialog_save"
+            android:textColor="@color/button_text_selector" />
+    </LinearLayout>
+
+</LinearLayout>

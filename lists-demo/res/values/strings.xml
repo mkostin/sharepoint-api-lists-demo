@@ -8,5 +8,27 @@
     <string name="title_activity_main_activity2">MainActivity2</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_view_list_item">ViewListItemActivity</string>
 
+    <string name="alert_dialog_title">An Error Occurred</string>
+    <string name="alert_dialog_ok">@android:string/ok</string>
+
+    <string name="data_id_unknown">Unknown ID</string>
+    <string name="data_title_unknown">Unknown Title</string>
+
+    <string name="main_list_create_failure">Unable to create list</string>
+    <string name="main_list_create">Add new list</string>
+
+    <string name="main_item_create_failure">Unable to create item</string>
+    <string name="main_item_create">Add new item</string>
+
+	<string name="main_item_create_dialog_title">Add Item</string>
+    <string name="main_item_create_dialog_name">Name</string>
+	<string name="main_item_create_dialog_address">Image URL</string>
+	<string name="main_item_create_dialog_attach_image">Attach image</string>
+    <string name="main_item_create_dialog_save">Create</string>
+    <string name="main_item_create_dialog_cancel">@android:string/cancel</string>
+
+	<string name="main_item_image_title_default">Sample item</string>
+    <string name="main_item_image_url_default">http://www.azulsystems.com/sites/default/files/images/Microsoft_open_tech_logo.jpg</string>
 </resources>

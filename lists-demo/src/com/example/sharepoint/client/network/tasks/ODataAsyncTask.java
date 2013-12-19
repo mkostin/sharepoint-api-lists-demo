@@ -1,4 +1,4 @@
-package com.example.sharepoint.client.network;
+package com.example.sharepoint.client.network.tasks;
 
 import android.content.Context;
 import android.os.AsyncTask;

@@ -1,4 +1,4 @@
-package com.example.sharepoint.client.network;
+package com.example.sharepoint.client.network.operations;
 
 import java.net.URI;
 
@@ -7,37 +7,35 @@ import android.content.Context;
 import com.example.sharepoint.client.Constants;
 import com.example.sharepoint.client.logger.Logger;
 import com.microsoft.opentech.office.network.odata.ODataOperation;
-import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataEntityRequest;
+import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataMetadataRequest;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataRetrieveRequestFactory;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
 import com.msopentech.odatajclient.engine.communication.response.ODataRetrieveResponse;
-import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
-import com.msopentech.odatajclient.engine.data.ODataEntity;
-import com.msopentech.odatajclient.engine.data.ODataProperty;
+import com.msopentech.odatajclient.engine.data.metadata.EdmMetadata;
+import com.msopentech.odatajclient.engine.data.metadata.edm.Schema;
 import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 
 /**
  * SP Lists list retrieval operation.
  */
-public class ListsOperation extends ODataOperation<ODataEntityRequest, ODataCollectionValue, ODataPubFormat> {
+public class ListsMetadataOperation extends ODataOperation<ODataMetadataRequest, String, ODataPubFormat> {
 
-    public ListsOperation(OnOperaionExecutionListener listener, Context context) {
+    public ListsMetadataOperation(OnOperaionExecutionListener listener, Context context) {
         super(listener, context);
-    }
-
-    @Override
-    protected ODataEntityRequest getRequest() {
-        return ODataRetrieveRequestFactory.getEntityRequest(getServerUrl());
     }
 
     @Override
     protected boolean handleServerResponse(ODataResponse response) {
         try {
             @SuppressWarnings("unchecked")
-            ODataEntity entity = ((ODataRetrieveResponse<ODataEntity>) response).getBody();
-            for (ODataProperty p : entity.getProperties()) {
-                mResult = p.getComplexValue().get(SHAREPOINT_RESULTS_FIELD_NAME).getCollectionValue();
+            EdmMetadata metadata = ((ODataRetrieveResponse<EdmMetadata>) response).getBody();
+            StringBuilder schemas = new StringBuilder();
+
+            for (Schema schema : metadata.getSchemas()) {
+                schemas.append(schema.getNamespace() + "\n");
             }
+
+            this.mResult = schemas.toString();
 
             return true;
         } catch (Exception e) {
@@ -48,7 +46,13 @@ public class ListsOperation extends ODataOperation<ODataEntityRequest, ODataColl
     }
 
     @Override
+    protected ODataMetadataRequest getRequest() {
+        ODataMetadataRequest request = ODataRetrieveRequestFactory.getMetadataRequest(getServerUrl().toString());
+        return request;
+    }
+
+    @Override
     protected URI getServerUrl() {
-        return URI.create(Constants.SP_LISTS_URL);
+        return URI.create(Constants.SP_METADATA);
     }
 }
