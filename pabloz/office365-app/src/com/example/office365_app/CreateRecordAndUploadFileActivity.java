@@ -1,7 +1,7 @@
 package com.example.office365_app;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,12 +34,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.database.Cursor;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 public class CreateRecordAndUploadFileActivity extends Activity {
 
@@ -222,8 +220,9 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 			            Uri selectedImage = data.getData();
 						InputStream imageStream = getContentResolver().openInputStream(selectedImage);
 						Bitmap bitmap = BitmapFactory.decodeStream(imageStream);
+						bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 8, bitmap.getHeight() / 8, false);
 				            
-						ByteArrayOutputStream stream = new ByteArrayOutputStream(bitmap.getWidth() * bitmap.getHeight());
+						ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			            bitmap.compress(CompressFormat.JPEG, 100, stream);
 			            
 			            return stream.toByteArray();
@@ -330,31 +329,24 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 		
 	    final Activity that = this;
 	    
-	    try{
-	    	runOnUiThread(new Runnable(){
-	    		@Override
-	    		public void run(){	
-	    			try{
-						//TODO: en vez de charSequence podríamos usar un ListAdaper, pero es medio bardo
-						//por ahora. 
-	    				AlertDialog.Builder builder = new AlertDialog.Builder(that);
-					    builder
-							.setTitle("Select an option:")				
-							.setSingleChoiceItems(sourceOptions, 0, new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int item) {				            	  
-					            	   openPhotoSource(item);
-					            	   findViewById(R.id.btnUploadPhoto).setEnabled(true);
-					           }
-						    });					    
-					    builder.create().show();
-	    			}catch(Throwable t){
-	    				
-	    			}
-	    		}
-	    	});
-	    }catch(Throwable t){
-	    	
-	    }
+    	runOnUiThread(new Runnable(){
+    		@Override
+    		public void run(){	
+				AlertDialog.Builder builder = new AlertDialog.Builder(that);
+			    builder
+					.setTitle("Select an option:")				
+					.setSingleChoiceItems(sourceOptions, 0, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int item) {				            	  
+							dialog.dismiss();   
+							openPhotoSource(item);
+			            	findViewById(R.id.btnUploadPhoto).setEnabled(true);
+			            	   
+			           }
+				    });					    
+			    builder.create().show();
+    		}
+    	});
+    
 	}
 
 	private OfficeFuture<Void> loadCredentials() {
