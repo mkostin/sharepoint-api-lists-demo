@@ -1,6 +1,8 @@
 package com.example.office365_app;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +21,8 @@ import com.microsoft.office365.sdk.SharepointClient;
 import com.microsoft.office365.sdk.SharepointOnlineCredentials;
 
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -30,14 +34,17 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.database.Cursor;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class CreateRecordAndUploadFileActivity extends Activity {
 
 	final static int CAMARA_REQUEST_CODE = 1000;
+	final static int SELECT_PHOTO = 1001;
 	
 	final static String SHAREPOINT_SITE = "https://lagashsystems365.sharepoint.com/sites/Argentina/Produccion/";
 	final static String CLIENT_ID = "c2c8ce1c-2a18-4ea6-8034-96935c451dd6";
@@ -48,9 +55,10 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 	
 	private Credentials mCredentials = null;
 	private String mSharepointList = null;
-	
 	private String mPictureUrl = null;
 	
+	final CharSequence[] sourceOptions = {"From Library", "From Camera"};
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -177,8 +185,7 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 								values.put(pictureColumnFieldName, SPFieldUrlValue.getJsonForUrl(mPictureUrl, "Uploaded picture"));
 							}
 							
-							client.insertListItem(list, values).get();
-							
+							client.insertListItem(list, values).get();							
 							createAndShowDialog("Values created", "Success!");
 						
 						} catch (Throwable e) {
@@ -204,36 +211,69 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 		
 		return null;
 	}
+	
+	private final byte[] getImageData(int requestCode, int resultCode, Intent data){
+			
+		switch(requestCode){
+			case SELECT_PHOTO:{
+				if (resultCode == RESULT_OK) {
+				
+		            try {
+			            Uri selectedImage = data.getData();
+						InputStream imageStream = getContentResolver().openInputStream(selectedImage);
+						Bitmap bitmap = BitmapFactory.decodeStream(imageStream);
+				            
+						ByteArrayOutputStream stream = new ByteArrayOutputStream(bitmap.getWidth() * bitmap.getHeight());
+			            bitmap.compress(CompressFormat.JPEG, 100, stream);
+			            
+			            return stream.toByteArray();
+			            
+					} catch (Throwable t) {					
+						createAndShowDialog(t);
+					}		            
+				}
+			}
+			case CAMARA_REQUEST_CODE: {
+				if (resultCode == RESULT_OK) {				
+					try{
+						Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+						ByteArrayOutputStream stream = new ByteArrayOutputStream();
+						bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+						
+						return stream.toByteArray();
+
+					}catch (Throwable t){
+						createAndShowDialog(t);
+					}
+				}
+			}
+			default: break;
+		}
+		return null;
+	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		
-		if (requestCode == CAMARA_REQUEST_CODE) {
-			if (resultCode == RESULT_OK) {
-				
-				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-				ByteArrayOutputStream stream = new ByteArrayOutputStream();
-				bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-				final byte[] byteArray = stream.toByteArray();
-				
-				new AsyncTask<Void, Void, Void>() {
+		final byte[] bytes = getImageData(requestCode, resultCode, data);
+		
+		new AsyncTask<Void, Void, Void>() {
 
-					@Override
-					protected Void doInBackground(Void... params) {
+			@Override
+			protected Void doInBackground(Void... params) {
 						loadCredentials()
 							.onError(new DefaultErrorCallback())
 							.done(new Action<Void>() {
 							
-							@Override
-							public void run(Void obj) throws Exception {
+						@Override
+						public void run(Void obj) throws Exception {
 								
 								try {
+									
 									SharepointClient client = new SharepointClient(SHAREPOINT_SITE, mCredentials);
 									String fileName = UUID.randomUUID().toString();
-					
-									SPFile file = client.uploadFile("DocLib", fileName + ".jpg", byteArray).get();
-									
+									SPFile file = client.uploadFile("DocLib", fileName + ".jpg", bytes).get();
 									mPictureUrl = extractServerUrl(SHAREPOINT_SITE) + file.getServerRelativeURL();
 									
 									runOnUiThread(new Runnable() {
@@ -250,28 +290,71 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 								}
 							}							
 						});
-						
 						return null;
-					}
-					
+					}	
 				}.execute();
-			}
-		}
 	}
 	
 	private String extractServerUrl(String sharepointSite) {
 		Uri uri = Uri.parse(sharepointSite);
-		
 		return uri.getScheme() + "://" + uri.getHost();
 	}
 	
-	private void uploadPhoto() {
-		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+	private void openPhotoSource(int itemSelected){
+		
+		switch(itemSelected){
+		case 0:
+				invokePhotoLibrayIntent();
+				break;
+		case 1:
+				invokeFromCameraIntent();
+				break;
+		default:
+				break;
+		}
+	}
 	
+	private void invokeFromCameraIntent(){		
+		Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 	    // start the image capture Intent
-	    startActivityForResult(intent, CAMARA_REQUEST_CODE);
+	    startActivityForResult(cameraIntent, CAMARA_REQUEST_CODE);
+	}
+	
+	private void invokePhotoLibrayIntent(){
+	    Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+	    photoPickerIntent.setType("image/*");
+	    startActivityForResult(photoPickerIntent, SELECT_PHOTO);  
+	}
+	
+	private void uploadPhoto() {
 		
-		
+	    final Activity that = this;
+	    
+	    try{
+	    	runOnUiThread(new Runnable(){
+	    		@Override
+	    		public void run(){	
+	    			try{
+						//TODO: en vez de charSequence podríamos usar un ListAdaper, pero es medio bardo
+						//por ahora. 
+	    				AlertDialog.Builder builder = new AlertDialog.Builder(that);
+					    builder
+							.setTitle("Select an option:")				
+							.setSingleChoiceItems(sourceOptions, 0, new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int item) {				            	  
+					            	   openPhotoSource(item);
+					            	   findViewById(R.id.btnUploadPhoto).setEnabled(true);
+					           }
+						    });					    
+					    builder.create().show();
+	    			}catch(Throwable t){
+	    				
+	    			}
+	    		}
+	    	});
+	    }catch(Throwable t){
+	    	
+	    }
 	}
 
 	private OfficeFuture<Void> loadCredentials() {
@@ -317,8 +400,7 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 	}
 
 	private String getStoredRefreshToken() {
-		SharedPreferences preferences = this.getPreferences(Context.MODE_PRIVATE);
-		
+		SharedPreferences preferences = this.getPreferences(Context.MODE_PRIVATE);	
 		return preferences.getString(REFRESH_TOKEN_KEY, null);
 	}
 	
@@ -339,10 +421,8 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		//The only menu item is "clear refresh token"
 		storeRefreshToken(null);
-		
 		return super.onMenuItemSelected(featureId, item);
 	}
-	
 
 	private void createAndShowDialog(Throwable error) {
 		StringBuilder sb = new StringBuilder();
@@ -352,8 +432,7 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 			error = error.getCause();
 		}
 		
-		createAndShowDialog(sb.toString(), "Error");
-		
+		createAndShowDialog(sb.toString(), "Error");	
 	}
 	
 	private void createAndShowDialog(final String content, final String title) {
@@ -380,5 +459,4 @@ public class CreateRecordAndUploadFileActivity extends Activity {
 			createAndShowDialog(error);
 		}
 	}
-
 }
