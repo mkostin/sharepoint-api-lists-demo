@@ -13,11 +13,11 @@ import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
 import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 
-public class ReadListOperation extends ODataOperation<ODataEntityRequest, ODataCollectionValue, ODataPubFormat> {
+public class GetListItemsOperation extends ODataOperation<ODataEntityRequest, ODataCollectionValue, ODataPubFormat> {
 
     private String mGUID;
 
-    public ReadListOperation(OnOperaionExecutionListener listener, Context context, String guid) {
+    public GetListItemsOperation(OnOperaionExecutionListener listener, Context context, String guid) {
         super(listener, context);
         this.mGUID = guid;
     }
@@ -31,7 +31,9 @@ public class ReadListOperation extends ODataOperation<ODataEntityRequest, ODataC
     protected boolean handleServerResponse(ODataResponse response) {
         ODataEntity res = ((ODataRetrieveResponse<ODataEntity>) response).getBody();
         mResult = res.getProperty(SHAREPOINT_ROOT_OBJECT_NAME).getComplexValue().get(SHAREPOINT_RESULTS_FIELD_NAME).getCollectionValue();
-
+        if (mResult == null) {
+            mResult = new ODataCollectionValue(null); // handle an empty list situation
+        }
         return true;
     }
 

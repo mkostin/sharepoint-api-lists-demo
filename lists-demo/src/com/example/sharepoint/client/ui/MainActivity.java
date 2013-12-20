@@ -1,16 +1,9 @@
 package com.example.sharepoint.client.ui;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-
-import org.apache.http.impl.cookie.BasicClientCookie;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -21,26 +14,32 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.sharepoint.client.Constants;
 import com.example.sharepoint.client.R;
+import com.example.sharepoint.client.adapters.ListsAdapter;
+import com.example.sharepoint.client.data.Item;
 import com.example.sharepoint.client.logger.Logger;
-import com.example.sharepoint.client.network.CreateListTask;
-import com.example.sharepoint.client.network.ListReadTask;
-import com.example.sharepoint.client.network.ListsOperation;
-import com.example.sharepoint.client.network.ListsReceiveTask;
-import com.example.sharepoint.client.network.RemoveListTask;
+import com.example.sharepoint.client.network.auth.CookieAuthenticator;
+import com.example.sharepoint.client.network.tasks.ItemCreateTask;
+import com.example.sharepoint.client.network.tasks.ItemRemoveTask;
+import com.example.sharepoint.client.network.tasks.ListCreateTask;
+import com.example.sharepoint.client.network.tasks.ListReadTask;
+import com.example.sharepoint.client.network.tasks.ListRemoveTask;
+import com.example.sharepoint.client.network.tasks.ListsReceiveTask;
+import com.example.sharepoint.client.utils.Utility;
 import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.BaseOperation;
 import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
-import com.microsoft.opentech.office.network.auth.AbstractCookieAuthenticator;
 import com.microsoft.opentech.office.network.auth.AbstractOfficeAuthenticator;
 import com.microsoft.opentech.office.network.auth.ISharePointCredentials;
 import com.microsoft.opentech.office.network.auth.SharePointCredentials;
+import com.microsoft.opentech.office.network.lists.GetListsOperation;
 import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
 import com.msopentech.odatajclient.engine.data.ODataComplexValue;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
@@ -52,13 +51,15 @@ import com.msopentech.odatajclient.engine.data.ODataValue;
 public class MainActivity extends Activity implements OnOperaionExecutionListener {
 
     /**
-     * Maps list names and guids
+     * List with items retrieved from SP.
      */
-    private HashMap<String, String> guids;
+    private ListView mList;
 
-    private ArrayAdapter<String> listsAdapter;
+    private ListsAdapter mListsAdapter;
 
-    private ArrayAdapter<String> itemsAdapter;
+    private ListsAdapter mItemsAdapter;
+
+    private String mSelectedListId;
 
     ISharePointCredentials mCreds;
 
@@ -67,59 +68,13 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Configuration.setServerBaseUrl(Constants.SP_BASE_URL);
+        mList = (ListView) findViewById(R.id.available_lists);
+        registerForContextMenu(mList);
 
-        authWithCookie();
-        //authWithOAuth();
+        Configuration.setServerBaseUrl(Constants.SP_BASE_URL);
+        Configuration.setAuthenticator(new CookieAuthenticator());
 
         new ListsReceiveTask(this, this).execute();
-    }
-
-    private void authWithCookie() {
-        Configuration.setAuthenticator(new AbstractCookieAuthenticator() {
-            protected List<BasicClientCookie> getCookies() {
-                ArrayList<BasicClientCookie> cookies = new ArrayList<BasicClientCookie>();
-
-                Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.DAY_OF_YEAR, 100);
-                Date date = calendar.getTime();
-
-                int idx = Constants.COOKIE_RT_FA.indexOf("=");
-                BasicClientCookie rtFa = new BasicClientCookie(Constants.COOKIE_RT_FA.substring(0, idx), Constants.COOKIE_RT_FA.substring(idx + 1));
-                rtFa.setExpiryDate(date);
-                rtFa.setDomain(URI.create(Constants.SP_BASE_URL).getHost());
-                rtFa.setPath("/");
-                cookies.add(rtFa);
-
-                idx = Constants.COOKIE_FED_AUTH.indexOf("=");
-                BasicClientCookie fedAuth = new BasicClientCookie(Constants.COOKIE_FED_AUTH.substring(0, idx), Constants.COOKIE_FED_AUTH
-                        .substring(idx + 1));
-                fedAuth.setExpiryDate(date);
-                fedAuth.setDomain(URI.create(Constants.SP_BASE_URL).getHost());
-                fedAuth.setPath("/");
-                cookies.add(fedAuth);
-
-                return cookies;
-            }
-        });
-    }
-
-    private void authWithOAuth() {
-        mCreds = new SharePointCredentials("f60c80ab-eafb-424b-a54b-853f67e43d3e", "1v3taiQI2nsFvccdJZVatjFKReLWcOkYaYum4+LfjkI=",
-                Constants.SP_SITE_URL, "https://www.akvelon.com/company/about-akvelon", "akvelon.com");
-
-        Configuration.setAuthenticator(new AbstractOfficeAuthenticator() {
-
-            @Override
-            protected ISharePointCredentials getCredentials() {
-                return mCreds;
-            }
-
-            @Override
-            protected Activity getActivity() {
-                return MainActivity.this;
-            }
-        });
     }
 
     @Override
@@ -138,9 +93,13 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
-            case R.id.remove_list:
-                String title = (String) ((TextView) info.targetView).getText();
-                removeList(title);
+            case R.id.remove:
+                if (mList.getAdapter() == mListsAdapter) {
+                    String title = mListsAdapter.getItem(info.position).getTitle();
+                    deleteList(title, info.position);
+                } else {
+                    deleteListItem(mSelectedListId, info.position);
+                }
                 return true;
 
             default:
@@ -148,44 +107,147 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
         }
     }
 
-    public void viewList(String title) {
+    public void deleteList(String title, int adapterIndex) {
         try {
-
-            ODataCollectionValue items = new ListReadTask(null, this).execute(guids.get(title)).get();
-
-            if (items == null) {
-                Toast.makeText(this, "Unable to get list items", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            displayItemsToView(items);
-
-        } catch (Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".viewList(): Error.");
-            Toast.makeText(this, "Unable to get list items", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    public void removeList(String title) {
-        try {
-            boolean result = new RemoveListTask(null, this).execute(guids.get(title)).get();
+            String id = mListsAdapter.getItem(adapterIndex).getId();
+            boolean result = new ListRemoveTask(null, this).execute(id).get();
             if (!result) {
-                showErrorMessage("Unable to remove list");
+                Utility.showToastNotification("Unable to remove list");
                 return;
             }
 
-            ListView lists = (ListView) MainActivity.this.findViewById(R.id.available_lists);
-            ArrayAdapter<String> newAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-            for (int i = 0; i < listsAdapter.getCount(); ++i) {
-                if (!listsAdapter.getItem(i).equals(title)) {
-                    newAdapter.add(listsAdapter.getItem(i));
-                }
-            }
+            mListsAdapter.remove(adapterIndex);
+            mListsAdapter.notifyDataSetChanged();
 
-            lists.setAdapter(newAdapter);
+            mList.invalidate();
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".removeList(): Error.");
         }
+    }
+
+    private void deleteListItem(String listID, int adapterIndex) {
+        try {
+            String id = mItemsAdapter.getItem(adapterIndex).getId();
+            boolean result = new ItemRemoveTask(null, this).execute(listID, id).get();
+            if (!result) {
+                Utility.showToastNotification("Unable to remove item");
+                return;
+            }
+
+            mItemsAdapter.remove(adapterIndex);
+            mItemsAdapter.notifyDataSetChanged();
+
+            mList.invalidate();
+        } catch (Exception e) {
+            Logger.logApplicationException(e, getClass().getSimpleName() + ".removeItem(): Error.");
+        }
+    }
+
+    public void readList(String title, int index) {
+        try {
+            mSelectedListId = mListsAdapter.getItem(index).getId();
+            ODataCollectionValue items = new ListReadTask(null, this).execute(mSelectedListId).get();
+
+            if (items == null) {
+                Utility.showToastNotification("Unable to get list items");;
+                return;
+            }
+
+            populateItems(items);
+
+        } catch (Exception e) {
+            Logger.logApplicationException(e, getClass().getSimpleName() + ".viewList(): Error.");
+            Utility.showToastNotification("Unable to get list items");
+        }
+    }
+
+    private void readListItem(int position) {
+        Intent intent = new Intent(MainActivity.this, ViewListItemActivity.class);
+        intent.putExtra("listGUID", mSelectedListId);
+        int itemId = Integer.valueOf(mItemsAdapter.getItem(position).getId());
+        intent.putExtra("itemId", itemId);
+        startActivity(intent);
+    }
+
+    public void createList() {
+        try {
+            ODataEntity newList = new ListCreateTask(null, this).execute().get();
+            if (newList == null) {
+                Utility.showAlertDialog(getString(R.string.main_list_create_failure), this);
+                return;
+            }
+
+            addEntity(newList, mListsAdapter);
+        } catch (Exception e) {
+            showErrorMessage(getString(R.string.main_list_create_failure));
+        }
+    }
+
+    private void createListItem() {
+        try {
+            ODataEntity newItem = new ItemCreateTask(null, this).execute(mSelectedListId).get();
+            if (newItem == null) {
+                Utility.showToastNotification(getString(R.string.main_item_create_failure));
+                return;
+            }
+
+            addEntity(newItem, mItemsAdapter);
+        } catch (Exception e) {
+            Utility.showAlertDialog(getString(R.string.main_item_create_failure), this);
+            Logger.logApplicationException(e, getClass().getSimpleName() + ".addNewItem(): Error.");
+        }
+    }
+
+    /**
+     * Adds entity to provided adapter.
+     *
+     * @param entity Item to add.
+     * @param adapter Adapter to insert item to.
+     */
+    private void addEntity(ODataEntity entity, ListsAdapter adapter) {
+        String title = entity.getProperty("d").getComplexValue().get("Title").getPrimitiveValue().toString();
+        String id = entity.getProperty("d").getComplexValue().get("Id").getPrimitiveValue().toString();
+
+        adapter.add(new Item(id, title));
+        adapter.notifyDataSetChanged();
+
+        mList.invalidate();
+    }
+
+    private ListsAdapter fillAdapter(ODataCollectionValue items, boolean isListsAdapter) {
+        ListsAdapter adapter = new ListsAdapter(this, R.layout.list_item, null);
+
+        if(isListsAdapter) {
+            mListsAdapter = adapter;
+        } else {
+            mItemsAdapter = adapter;
+        }
+
+        Iterator<ODataValue> iter = items.iterator();
+
+        while (iter.hasNext()) {
+            ODataComplexValue value = (ODataComplexValue) iter.next().asComplex();
+            String title;
+
+            if (!value.get("Title").hasNullValue()) {
+                title = value.get("Title").getPrimitiveValue().toString();
+            } else {
+                title = "(id) " + value.get("Id").getPrimitiveValue().toCastValue();
+            }
+
+            String id = value.get("Id").getPrimitiveValue().toString();
+            if (isListsAdapter) {
+                mListsAdapter.add(new Item(id, title));
+            } else {
+                mItemsAdapter.add(new Item(id, title));
+            }
+        }
+
+        return adapter;
+    }
+
+    private void showErrorMessage(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
     }
 
     @SuppressWarnings("rawtypes")
@@ -193,55 +255,16 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
     public void onExecutionComplete(final BaseOperation operation, final boolean executionResult) {
         runOnUiThread(new Runnable() {
             public void run() {
-                displayListsToView(operation, executionResult);
+                populateLists(operation, executionResult);
             }
         });
     }
 
-    public void addNewList(View button) {
-        try {
-            ODataEntity newList = new CreateListTask(null, this).execute().get();
-            if (newList == null) {
-                showErrorMessage("Unable to create list");
-                return;
-            }
-
-            String title = newList.getProperty("d").getComplexValue().get("Title").getPrimitiveValue().toString();
-            guids.put(title, newList.getProperty("d").getComplexValue().get("Id").getPrimitiveValue().toString());
-
-            listsAdapter.add(title);
-            listsAdapter.notifyDataSetChanged();
-            MainActivity.this.findViewById(R.id.available_lists).invalidate();
-
-        } catch (Exception e) {
-            showErrorMessage("Unable to create list");
-        }
-    }
-
-    private void showErrorMessage(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-    }
-
-    /**
-     * Displays lists to ListView
-     *
-     * @param operation
-     * @param executionResult
-     */
-    private void displayListsToView(@SuppressWarnings("rawtypes") final BaseOperation operation, final boolean executionResult) {
-        try {
-            if (executionResult != true) {
-                ((TextView) MainActivity.this.findViewById(R.id.pending_request_text_stub)).setText("Error");
-                return;
-            }
-
-            listsAdapter = fillAdapter(((ListsOperation) operation).getResult());
-
-            showLists();
-
-        } catch (Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".run(): Error.");
-            ((TextView) MainActivity.this.findViewById(R.id.pending_request_text_stub)).setText("Error");
+    public void onAddButtonClick(View button) {
+        if (mList.getAdapter() == mListsAdapter) {
+            createList();
+        } else {
+            createListItem();
         }
     }
 
@@ -249,18 +272,21 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
      *
      */
     private void showLists() {
-        ListView lists = (ListView) MainActivity.this.findViewById(R.id.available_lists);
-        lists.setAdapter(listsAdapter);
-        lists.setVisibility(View.VISIBLE);
-        MainActivity.this.findViewById(R.id.add_list_button).setVisibility(View.VISIBLE);
-        MainActivity.this.findViewById(R.id.pending_request_text_stub).setVisibility(View.GONE);
-        registerForContextMenu(lists);
+        mList.setAdapter(mListsAdapter);
 
-        lists.setOnItemClickListener(new OnItemClickListener() {
+        mList.setVisibility(View.VISIBLE);
+        findViewById(R.id.add_list_button).setVisibility(View.VISIBLE);
+        findViewById(R.id.pending_request_text_stub).setVisibility(View.GONE);
+
+        //registerForContextMenu(mList);
+
+        ((Button) findViewById(R.id.add_list_button)).setText(getString(R.string.main_list_create));
+
+        mList.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 try {
-                    String title = (String) ((TextView) view).getText();
-                    viewList(title);
+                    String title = mListsAdapter.getItem(position).getTitle();
+                    readList(title, position);
                 } catch (Exception e) {
                     Logger.logApplicationException(e, getClass().getSimpleName() + ".onItemClick(): Error.");
                 }
@@ -268,42 +294,71 @@ public class MainActivity extends Activity implements OnOperaionExecutionListene
         });
     }
 
-    private ArrayAdapter<String> fillAdapter(ODataCollectionValue items) {
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-        Iterator<ODataValue> iter = items.iterator();
-        boolean fillGuids = guids == null;
-        if (fillGuids) {
-            guids = new HashMap<String, String>();
-        }
-
-        while (iter.hasNext()) {
-            ODataComplexValue value = (ODataComplexValue) iter.next().asComplex();
-            String title = value.get("Title").getPrimitiveValue().toString();
-            if (fillGuids) {
-                String guid = value.get("Id").getPrimitiveValue().toString();
-                guids.put(title, guid);
+    /**
+     * Fills current lists list with an update from server.
+     *
+     * @param operation Server operation
+     * @param executionResult execution result flag.
+     */
+    private void populateLists(@SuppressWarnings("rawtypes") final BaseOperation operation, final boolean executionResult) {
+        try {
+            if (executionResult != true) {
+                ((TextView) findViewById(R.id.pending_request_text_stub)).setText("Error");
+                return;
             }
-            adapter.add(title);
-        }
 
-        return adapter;
+            mListsAdapter = fillAdapter(((GetListsOperation) operation).getResult(), true);
+
+            showLists();
+
+        } catch (Exception e) {
+            Logger.logApplicationException(e, getClass().getSimpleName() + ".run(): Error.");
+            ((TextView) findViewById(R.id.pending_request_text_stub)).setText("Error");
+        }
     }
 
-    private void displayItemsToView(ODataCollectionValue items) {
+    private void populateItems(ODataCollectionValue items) {
 
-        itemsAdapter = fillAdapter(items);
+        mItemsAdapter = fillAdapter(items, false);
 
-        ListView lists = (ListView) MainActivity.this.findViewById(R.id.available_lists);
-        lists.setAdapter(itemsAdapter);
-        unregisterForContextMenu(lists);
-        lists.setOnItemClickListener(null);
+        mList.setAdapter(mItemsAdapter);
+        mList.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                readListItem(position);
+            }
+        });
+        ((Button) findViewById(R.id.add_list_button)).setText(getString(R.string.main_item_create));
+    }
+
+    private void authWithOAuth() {
+        // mCreds = new SharePointCredentials("f60c80ab-eafb-424b-a54b-853f67e43d3e", "1v3taiQI2nsFvccdJZVatjFKReLWcOkYaYum4+LfjkI=",
+        //        Constants.SP_SITE_URL, "https://www.akvelon.com/company/about-akvelon", "www.akvelon.com");
+        mCreds = new SharePointCredentials("60188dfc-3250-44c5-8434-8f106c9e529e", "Epn9cpyL7qxyCvPJgjNv6RNYZDAEq0vDefhJ+3hi16A=",
+                Constants.SP_SITE_URL, "https://www.akvelon.com/company/about-akvelon", "www.akvelon.com");
+
+        Configuration.setAuthenticator(new AbstractOfficeAuthenticator() {
+
+            @Override
+            protected ISharePointCredentials getCredentials() {
+                return mCreds;
+            }
+
+            @Override
+            protected Activity getActivity() {
+                return MainActivity.this;
+            }
+        });
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (((ListView) findViewById(R.id.available_lists)).getAdapter() == itemsAdapter) {
+            ListAdapter adapter = mList.getAdapter();
+            if (adapter == mItemsAdapter) {
                 showLists();
+            }
+            if (adapter == mListsAdapter) {
+                return super.onKeyDown(keyCode, event);
             }
             return true;
         }

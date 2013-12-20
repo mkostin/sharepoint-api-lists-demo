@@ -6,6 +6,7 @@ package com.example.sharepoint.client;
  */
 public class Constants {
 
+    //public static final String SP_SITE_URL = "http://sphvm-7052/";
     public static final String SP_SITE_URL = "https://microsoft.sharepoint.com/teams/MSOpenTech-CLA/testsite/";
     //public static final String SP_SITE_URL = "https://akvelon.sharepoint.com/sites/Sandbox/";
 
@@ -32,7 +33,7 @@ public class Constants {
     /**
      * NTLM authentication required cookie.
      */
-    public static final String COOKIE_FED_AUTH = "FedAuth=77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48U1A+RmFsc2UsMGguZnxtZW1iZXJzaGlwfDEwMDM3ZmZlODc5NDU4NjJAbGl2ZS5jb20sMCMuZnxtZW1iZXJzaGlwfHYtbWF4a29zQG1pY3Jvc29mdC5jb20sMTMwMzE5MTA3MjM0NzcwNTExLEZhbHNlLFdlTDNPYVE3Q1hiVmVvMHl6cmdtUFErRElBN3hDV3VhMkk4RWR0SlpKcnVtQ3FGcVFaTHRRZTlkT2R0MnowNFFRYmlyMngyWEFsQk9FR2pKTE5yZys2UDBMYnVMcVBTNUpRTXNTZXV6M25mZkwrUk9DTDNPeEM5Mm5ubDdMcnZFQTcyTzBDZ2d4MElwK2FWK21Zcy9zcTE1NHNDd2tKQW5Da2JidlhNNmNERkloWWE3M1B6eTRTaDM1cVNzVjBwNTU4VHN3NG01VHU3aHgyTVQxWFRnUWNiVHBqbFNCZzBqSzRlSy9jY2o3eW1hVzg4bUN1TXkvSURWa05BMDRjQmpsU21vTWNvZ2g5Z3ZCV3NuaDdpSk9lRVJaQmpsWk1MN2MrTzFXMUIrbkp1OGY0d0FsdERwWEpRQTdwYVRpeDMzdmlwL1F5cU1LTFJQVU9GS05iU0hIZz09LGh0dHBzOi8vbWljcm9zb2Z0LnNoYXJlcG9pbnQuY29tL19sYXlvdXRzLzE1L2ltYWdlcy9mYXZpY29uLmljbz9yZXY9MzE8L1NQPg==";
+    public static final String COOKIE_FED_AUTH = "FedAuth=77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48U1A+RmFsc2UsMGguZnxtZW1iZXJzaGlwfDEwMDM3ZmZlODc5NDU4NjJAbGl2ZS5jb20sMCMuZnxtZW1iZXJzaGlwfHYtbWF4a29zQG1pY3Jvc29mdC5jb20sMTMwMzIzNTQ2NDQ0MDY4NTk0LEZhbHNlLEcrSmQ2VFNYOVExYTZJTkdyODlwZHlXRmkxcnBCSm5OUWhnRGJzc1A5QUVhUDRJQTRLQzlzOXh0TXQvVWV1OUtSNkdWdzVJNWhFcVU2Kzk3V2NwMlNVRStoT3BkYkpRdzFJMi8vdXpGd2VIV1BCRm1kSFd4K3RUemRNb2k2YlRvdXRkOS9OWDc5cDUzUkk4RGNseE95L3ZKeU1WQlRGUFFtOWxqQm5Rek9RdWFnSFdXYWVtRDZEbXlJZjU2aGtpaFFJWWNUYjUzSWJDRklXUGVDMlZLaW9mREpDWHlwVTR6NEFSclFQRGxWSmowWkhFYVF5TEh4M014RWZXdElIZWtiK0Z6VXAybXU4dklIa2ZGQUZZS2FzakpwUWlQQmoyaUtQR29BYnlpQk9WbEZBa1BTRWxkU1VjWjA2QThSZTFrVjhzWUt6dy9jS3p2YjU5MzdwUm15UT09LGh0dHBzOi8vbWljcm9zb2Z0LnNoYXJlcG9pbnQuY29tL3RlYW1zL01TT3BlblRlY2gtQ0xBL3Rlc3RzaXRlLzwvU1A+";
 
     /**
      * NTLM authentication required cookie.
@@ -45,12 +46,12 @@ public class Constants {
      * - domain\\username <br/>
      * - username@domain.com
      */
-    public static final String USERNAME = "v-maxkos@microsoft.com";
+    public static final String USERNAME = "username@domain";
 
     /**
      * Password for authentication (whatever type is used).
      */
-    public static final String PASSWORD = "Vtc#Z9rw";
+    public static final String PASSWORD = "your-pass";
 
 
 }

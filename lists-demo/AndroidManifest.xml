@@ -25,6 +25,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.ViewListItemActivity"
+            android:label="@string/title_activity_view_list_item" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.sharepoint.client.ui.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

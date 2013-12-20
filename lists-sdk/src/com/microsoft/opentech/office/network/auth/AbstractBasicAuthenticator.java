@@ -1,10 +1,7 @@
 package com.microsoft.opentech.office.network.auth;
 
-import java.util.List;
-
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.cookie.BasicClientCookie;
 
 import android.util.Base64;
 
@@ -15,14 +12,14 @@ import com.microsoft.opentech.office.network.NetworkException;
  */
 public abstract class AbstractBasicAuthenticator implements IAuthenticator {
 
-    protected abstract List<BasicClientCookie> getUserName();
+    protected abstract String getUsername();
 
-    protected abstract List<BasicClientCookie> getPassword();
+    protected abstract String getPassword();
 
     @Override
     public void prepareClient(HttpClient client) {
         try {
-            String encodedValue = Base64.encodeToString((getUserName() + ":" + getPassword()).getBytes(), Base64.DEFAULT).trim();
+            String encodedValue = Base64.encodeToString((getUsername() + ":" + getPassword()).getBytes(), Base64.DEFAULT).trim();
             ((HttpUriRequest) client).setHeader("Authorization", "Basic " + encodedValue);
 
         } catch (Exception e) {

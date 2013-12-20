@@ -1,10 +1,10 @@
-package com.example.sharepoint.client.network;
+package com.example.sharepoint.client.network.tasks;
 
 import android.content.Context;
 
 import com.example.sharepoint.client.logger.Logger;
 import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
-import com.microsoft.opentech.office.network.lists.ReadListOperation;
+import com.microsoft.opentech.office.network.lists.GetListItemsOperation;
 import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
 
 public class ListReadTask extends ODataAsyncTask<String, ODataCollectionValue> {
@@ -16,7 +16,7 @@ public class ListReadTask extends ODataAsyncTask<String, ODataCollectionValue> {
     @Override
     protected ODataCollectionValue doInBackground(String... params) {
         try {
-            ReadListOperation oper = new ReadListOperation(mListener, mContext, params[0]);
+            GetListItemsOperation oper = new GetListItemsOperation(mListener, mContext, params[0]);
             oper.execute();
             return oper.getResult();
         } catch (Exception e) {

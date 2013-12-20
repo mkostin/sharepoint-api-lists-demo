@@ -1,11 +1,18 @@
 package com.microsoft.opentech.office.network.auth;
 
+import java.io.Serializable;
+
 import android.text.TextUtils;
 
 /**
  * Stores credentials required to authenticate to Office 365 Online.
  */
-public class SharePointCredentials implements ISharePointCredentials {
+public class SharePointCredentials implements ISharePointCredentials, Serializable {
+
+    /**
+     * Unique storage UUID.
+     */
+    private static final long serialVersionUID = 1L;
 
     private String mClientId;
 

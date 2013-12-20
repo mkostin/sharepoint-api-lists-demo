@@ -1,4 +1,4 @@
-package com.example.sharepoint.client.network;
+package com.example.sharepoint.client.network.tasks;
 
 import android.content.Context;
 
@@ -6,9 +6,9 @@ import com.example.sharepoint.client.logger.Logger;
 import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
 import com.microsoft.opentech.office.network.lists.RemoveListOperation;
 
-public class RemoveListTask extends ODataAsyncTask<String, Boolean> {
+public class ListRemoveTask extends ODataAsyncTask<String, Boolean> {
 
-    public RemoveListTask(OnOperaionExecutionListener listener, Context context) {
+    public ListRemoveTask(OnOperaionExecutionListener listener, Context context) {
         super(listener, context);
         // TODO Auto-generated constructor stub
     }

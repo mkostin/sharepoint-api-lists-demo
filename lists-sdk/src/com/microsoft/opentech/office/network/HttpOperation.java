@@ -91,11 +91,22 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
     /**
      * Called during http client setup. Can be overridden if necessary. Default implementation does nothing and returns <code>true</code>.
      *
-     * @param provider Credentials provider
+     * @param httpClient HTTP client instance.
      *
      * @return <code>true</code> if initialization was successfull, <code>false</code> otherwise.
      */
-    protected boolean initializeClient(HttpClient httpClient) {
+    protected boolean prepareClient(HttpClient httpClient) {
+        return true;
+    }
+
+    /**
+     * Called during http message setup. Can be overridden if necessary. Default implementation does nothing and returns <code>true</code>.
+     *
+     * @param httpMessage HTTP message instance.
+     *
+     * @return <code>true</code> if initialization was successfull, <code>false</code> otherwise.
+     */
+    protected boolean prepareMessage(HttpUriRequest httpMessage) {
         return true;
     }
 
@@ -180,11 +191,13 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
         HttpEntity ent = null;
 
         try {
-            httpClient = new DefaultHttpClient();
-            initializeClient((DefaultHttpClient) httpClient);
+            //httpClient = new DefaultHttpClient();
+            httpClient = getTrustAllHttpClient();
+            prepareClient((DefaultHttpClient) httpClient);
             setCredentials(((DefaultHttpClient) httpClient).getCredentialsProvider());
 
             HttpUriRequest httpMessage = getRequest();
+            prepareMessage(httpMessage);
 
             HttpResponse response = null;
             response = httpClient.execute(httpMessage);
@@ -204,6 +217,8 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
             }
 
             this.mResponse = responseBuffer.toString();
+        } catch (Throwable e) {
+            throw new NetworkException("Error: " + e.getMessage(), e);
         } finally {
             if (ent != null) {
                 ent.consumeContent();
