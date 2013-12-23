@@ -45,9 +45,7 @@ public class Entity implements Serializable {
         String type = metadata.get("type").getPrimitiveValue().toString();
 
         mEntity = ODataFactory.newEntity(type);
-        for (ODataProperty property: metadata) {
-            EntityBuilder.setMeta(mEntity, property.getName(), property.getValue());
-        }
+        mEntity.addProperty(ODataFactory.newComplexProperty("__metadata", metadata));
 
         for (ODataProperty property: properties) {
             if ("__metadata".equals(property.getName())) {
@@ -63,8 +61,13 @@ public class Entity implements Serializable {
         return mEntity;
     }
 
-    public Object getMeta(String name) throws IllegalArgumentException {
+    public Object getMeta(String name) throws IllegalArgumentException, RuntimeException {
         ODataComplexValue metadata = mEntity.getProperty("__metadata").getComplexValue();
+        
+        if (metadata == null) {
+            throw new RuntimeException("No metadata found");
+        }
+        
         if (metadata.get(name) == null) {
             throw new IllegalArgumentException("Field \"" + name + "\" not found in metadata");
         }
@@ -113,5 +116,9 @@ public class Entity implements Serializable {
         }
 
         return this;
+    }
+
+    public Object get(String name){
+        return ComplexValue.fromODataObject(mEntity.getProperty(name).getValue());
     }
 }

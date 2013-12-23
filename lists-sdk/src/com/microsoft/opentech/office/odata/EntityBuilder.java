@@ -48,6 +48,15 @@ public class EntityBuilder {
         return new EntityBuilder(type);
     }
     
+    public static final EntityBuilder fromODataEntity(ODataEntity odataEntity) {
+        EntityBuilder builder = new EntityBuilder("");
+        Entity entity = new Entity(odataEntity);
+        builder.mCurrent = entity;
+        builder.mMetadata = (ComplexValue) entity.get("__metadata");
+        return builder;
+        
+    }
+    
     /**
      * Changes a value of existing property in currently building entity.
      * 

@@ -1,6 +1,8 @@
 package com.microsoft.opentech.office.odata;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -11,6 +13,7 @@ import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
 import com.msopentech.odatajclient.engine.data.ODataComplexValue;
 import com.msopentech.odatajclient.engine.data.ODataFactory;
 import com.msopentech.odatajclient.engine.data.ODataPrimitiveValue;
+import com.msopentech.odatajclient.engine.data.ODataProperty;
 import com.msopentech.odatajclient.engine.data.ODataValue;
 import com.msopentech.odatajclient.engine.data.metadata.edm.EdmSimpleType;
 
@@ -94,5 +97,34 @@ public class ComplexValue implements Serializable {
         } catch (ClassCastException e) {
             throw new IllegalArgumentException("Cannot cast this object to OData type");
         }
+    }
+
+    static Object fromODataObject(ODataValue value) {
+        if (value == null) {
+            return null;
+        }
+        
+        if (value.isPrimitive()) {
+            return value.asPrimitive().toValue();
+        }
+        
+        if (value.isCollection()) {
+            List<Object> collection = new ArrayList<Object>();
+            Iterator<ODataValue> iterator = value.asCollection().iterator();
+            while (iterator.hasNext()) {
+                collection.add(fromODataObject(iterator.next()));
+            }
+            
+            return collection;
+        }
+        
+        ComplexValue complex = new ComplexValue();
+        Iterator<ODataProperty> iterator = value.asComplex().iterator();
+        while (iterator.hasNext()) {
+            ODataProperty property = iterator.next();
+            complex.set(property.getName(), fromODataObject(property.getValue()));
+        }
+        
+        return complex;
     }
 }

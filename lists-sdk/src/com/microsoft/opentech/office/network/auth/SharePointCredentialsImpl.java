@@ -7,7 +7,7 @@ import android.text.TextUtils;
 /**
  * Stores credentials required to authenticate to Office 365 Online.
  */
-public class SharePointCredentials implements ISharePointCredentials, Serializable {
+public class SharePointCredentialsImpl implements ISharePointCredentials, Serializable {
 
     /**
      * Unique storage UUID.
@@ -28,7 +28,10 @@ public class SharePointCredentials implements ISharePointCredentials, Serializab
 
     private String mToken;
 
-    public SharePointCredentials(String clientId, String clientSecret, String url, String redirectUrl, String domain) throws IllegalArgumentException {
+    public SharePointCredentialsImpl() {
+    }
+
+    public SharePointCredentialsImpl(String clientId, String clientSecret, String url, String redirectUrl, String domain) throws IllegalArgumentException {
         mClientId = clientId;
         mClientSecret = clientSecret;
         mUrl = url;
