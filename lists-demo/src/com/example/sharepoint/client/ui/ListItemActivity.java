@@ -18,7 +18,7 @@ import com.msopentech.odatajclient.engine.data.ODataComplexValue;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
 import com.msopentech.odatajclient.engine.data.ODataProperty;
 
-public class ViewListItemActivity extends Activity implements OnOperaionExecutionListener {
+public class ListItemActivity extends Activity implements OnOperaionExecutionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

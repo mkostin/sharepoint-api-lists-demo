@@ -34,7 +34,7 @@ public class LocalPersistence {
             fileOut.getFD().sync();
 
         } catch (IOException ex) {
-            Utility.showAlertDialog(ex.toString(), ListsDemoApplication.getAppContext());
+            Utility.showAlertDialog(ex.toString(), ListsDemoApplication.getContext());
         } finally {
             if (objectOut != null) {
                 objectOut.close();
@@ -61,7 +61,7 @@ public class LocalPersistence {
             objectIn = new ObjectInputStream(fileIn);
             object = objectIn.readObject();
         } catch (Exception ex) {
-        	Utility.showAlertDialog(ex.toString(), ListsDemoApplication.getAppContext());
+        	Utility.showAlertDialog(ex.toString(), ListsDemoApplication.getContext());
         } finally {
             if (objectIn != null) {
                 objectIn.close();

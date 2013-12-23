@@ -9,17 +9,16 @@ import com.microsoft.opentech.office.odata.EntityBuilder;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
 
 
-public class ItemCreateTask extends ODataAsyncTask<String, ODataEntity> {
+public class ItemCreateTask extends ODataAsyncTask<Object, ODataEntity> {
 
     public ItemCreateTask(OnOperaionExecutionListener listener, Context context) {
         super(listener, context);
     }
 
     @Override
-    protected ODataEntity doInBackground(String... params) {
+    protected ODataEntity doInBackground(Object... params) {
         try {
-            EntityBuilder builder = EntityBuilder.newEntity(null).set("Title", "test"); // type is unknown, it will be set during operation execution
-            CreateListItemOperation oper = new CreateListItemOperation(mListener, mContext, params[0], builder);
+            CreateListItemOperation oper = new CreateListItemOperation(mListener, mContext, (String) params[0], (EntityBuilder) params[1]);
             oper.execute();
             return oper.getResult();
         } catch (Exception e) {

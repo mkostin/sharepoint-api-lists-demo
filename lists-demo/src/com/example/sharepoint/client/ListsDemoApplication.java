@@ -28,7 +28,7 @@ public class ListsDemoApplication extends Application {
      *
      * @return The application context.
      */
-    public static Context getAppContext() {
+    public static Context getContext() {
         return ListsDemoApplication.mContext;
     }
 }

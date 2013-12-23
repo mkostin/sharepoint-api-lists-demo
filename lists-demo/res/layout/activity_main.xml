@@ -8,9 +8,10 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".MainActivity" >
+    tools:context=".ListsActivity" >
 
 	    <TextView
+	        android:id="@+id/list_label"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:paddingBottom="5dip"
@@ -18,7 +19,7 @@
 	        android:paddingTop="5dip"
 	        android:textAppearance="?android:attr/textAppearanceMedium"
 	        android:textColor="@android:color/background_dark"
-	        android:text="Availiable lists:"
+	        android:text="@string/main_list_label_lists"
 	        android:textSize="16dp" />
 
 	    <ListView
@@ -28,14 +29,14 @@
 	        android:visibility="gone"
 	        android:layout_weight="1"
 	        />
-	    
-	    <TextView 
+
+	    <TextView
 	        android:id="@+id/pending_request_text_stub"
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent"
 	        android:text="Pending request..."
 	        />
-	    <Button 
+	    <Button
 	        android:id="@+id/add_list_button"
 	        android:layout_height="wrap_content"
 	        android:layout_width="match_parent"
