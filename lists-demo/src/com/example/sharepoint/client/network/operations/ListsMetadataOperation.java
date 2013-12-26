@@ -7,6 +7,7 @@ import android.content.Context;
 import com.example.sharepoint.client.Constants;
 import com.example.sharepoint.client.logger.Logger;
 import com.microsoft.opentech.office.network.odata.ODataOperation;
+import com.microsoft.opentech.office.odata.async.ICallback;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataMetadataRequest;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataRetrieveRequestFactory;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
@@ -20,7 +21,7 @@ import com.msopentech.odatajclient.engine.format.ODataPubFormat;
  */
 public class ListsMetadataOperation extends ODataOperation<ODataMetadataRequest, String, ODataPubFormat> {
 
-    public ListsMetadataOperation(OnOperaionExecutionListener listener, Context context) {
+    public ListsMetadataOperation(ICallback<String> listener, Context context) {
         super(listener, context);
     }
 

@@ -43,32 +43,29 @@ import com.example.sharepoint.client.network.auth.AuthType;
 import com.example.sharepoint.client.network.auth.CookieAuthenticator;
 import com.example.sharepoint.client.network.auth.NTLMAuthenticator;
 import com.example.sharepoint.client.network.auth.SharePointCredentials;
-import com.example.sharepoint.client.network.tasks.FileCreateTask;
-import com.example.sharepoint.client.network.tasks.ItemCreateTask;
-import com.example.sharepoint.client.network.tasks.ItemReadTask;
-import com.example.sharepoint.client.network.tasks.ItemRemoveTask;
-import com.example.sharepoint.client.network.tasks.ItemUpdateTask;
-import com.example.sharepoint.client.network.tasks.ListCreateTask;
-import com.example.sharepoint.client.network.tasks.ListReadTask;
-import com.example.sharepoint.client.network.tasks.ListRemoveTask;
-import com.example.sharepoint.client.network.tasks.ListsReceiveTask;
 import com.example.sharepoint.client.preferences.AuthPreferences;
 import com.example.sharepoint.client.utils.Utility;
 import com.microsoft.opentech.office.Configuration;
-import com.microsoft.opentech.office.network.BaseOperation;
-import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
 import com.microsoft.opentech.office.network.auth.AbstractOfficeAuthenticator;
 import com.microsoft.opentech.office.network.auth.ISharePointCredentials;
 import com.microsoft.opentech.office.network.files.CreateFileOperation;
+import com.microsoft.opentech.office.network.lists.CreateListItemOperation;
+import com.microsoft.opentech.office.network.lists.CreateListOperation;
+import com.microsoft.opentech.office.network.lists.GetItemOperation;
+import com.microsoft.opentech.office.network.lists.GetListItemsOperation;
 import com.microsoft.opentech.office.network.lists.GetListsOperation;
+import com.microsoft.opentech.office.network.lists.RemoveListItemOperation;
+import com.microsoft.opentech.office.network.lists.RemoveListOperation;
+import com.microsoft.opentech.office.network.lists.UpdateListItemOperation;
 import com.microsoft.opentech.office.odata.Entity;
 import com.microsoft.opentech.office.odata.Entity.Builder;
+import com.microsoft.opentech.office.odata.async.ICallback;
 import com.squareup.otto.Subscribe;
 
 /**
  * Sample activity displaying request results.
  */
-public class ListsActivity extends Activity implements OnOperaionExecutionListener {
+public class ListsActivity extends Activity implements ICallback<String> {
 
     /**
      * Reauest code for the operation of image retrieval either from gallery or from camera.
@@ -135,14 +132,31 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
     }
 
     private void refreshLists() {
-        if(mListsAdapter != null) {
+        if (mListsAdapter != null) {
             mListsAdapter.clear();
             mListsAdapter.notifyDataSetChanged();
             mList.invalidate();
         }
 
         setExecutionStatus(true, getString(R.string.pending_request));
-        new ListsReceiveTask(this, this).execute();
+        new GetListsOperation(null, this).executeAsync().setCallback(new ICallback<List<Object>>() {
+            public void onError(Throwable error) {
+                runOnUiThread( new Runnable() {
+                    @Override
+                    public void run() {
+                        setExecutionStatus(false, getString(R.string.main_status_error));
+                    }
+                });
+            }
+
+            public void onDone(final List<Object> result) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        populateLists(result);
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -152,7 +166,7 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".onResume(): Failed.");
         } finally {
-        super.onResume();
+            super.onResume();
         }
     }
 
@@ -178,7 +192,7 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
         // First timer
         if (creds == null) {
             creds = new SharePointCredentials("f60c80ab-eafb-424b-a54b-853f67e43d3e", "1v3taiQI2nsFvccdJZVatjFKReLWcOkYaYum4+LfjkI=",
-                        Constants.SP_SITE_URL, "https://www.akvelon.com/company/about-akvelon", "www.akvelon.com");
+                    Constants.SP_SITE_URL, "https://www.akvelon.com/company/about-akvelon", "www.akvelon.com");
             AuthPreferences.storeCredentials(creds);
         }
 
@@ -206,7 +220,7 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
                 refreshLists();
                 break;
             case NTLM:
-                if(TextUtils.isEmpty(creds.getLogin()) || TextUtils.isEmpty(creds.getPassword())){
+                if (TextUtils.isEmpty(creds.getLogin()) || TextUtils.isEmpty(creds.getPassword())) {
                     showNTLMLoginDialog();
                 }
 
@@ -241,7 +255,6 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
         }
     }
 
-
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
@@ -265,70 +278,119 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
     private void updateItem(String listID, int adapterIndex) {
         try {
             String id = mItemsAdapter.getItem(adapterIndex).getId();
-            Entity current = new ItemReadTask(null, this).execute(listID, Integer.valueOf(id)).get();
-            String url = "";
-            if (current.get("Image") != null) {
-                url = ((Entity)current.get("Image")).get("Url").toString();
-            }
-            mItem = new Item(current.get("Id").toString(), current.get("Title").toString());
-            showItemDialog(current.get("Title").toString(), url, false);
+
+            new GetItemOperation(null, this, listID, Integer.valueOf(id)).executeAsync().setCallback(new ICallback<Entity>() {
+
+                @Override
+                public void onError(final Throwable error) {
+                    runOnUiThread( new Runnable() {
+                        @Override
+                        public void run() {
+                            Utility.showToastNotification("Unable to retrieve item: " + error.getMessage());
+                        }
+                    });
+                }
+
+                @Override
+                public void onDone(final Entity result) {
+                    runOnUiThread( new Runnable() {
+                        @Override
+                        public void run() {
+                            if(result != null) {
+                                String url = "";
+                                if (result.get("Image") != null) {
+                                    url = ((Entity) result.get("Image")).get("Url").toString();
+                                }
+                                mItem = new Item(result.get("Id").toString(), result.get("Title").toString());
+                                showItemDialog(result.get("Title").toString(), url, false);
+                            } else {
+                                Utility.showToastNotification("Unable to retrieve item");
+                            }
+                        }
+                    });
+                }
+            });
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".updateItem(): Error.");
         }
     }
 
-    public void deleteList(String title, int adapterIndex) {
-        try {
-            String id = mListsAdapter.getItem(adapterIndex).getId();
-            boolean result = new ListRemoveTask(null, this).execute(id).get();
-            if (!result) {
-                Utility.showToastNotification("Unable to remove list");
-                return;
+    public void deleteList(String title, final int adapterIndex) {
+
+        String id = mListsAdapter.getItem(adapterIndex).getId();
+        new RemoveListOperation(null, this, id).executeAsync().setCallback(new ICallback<Boolean>() {
+            public void onError(final Throwable error) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        Utility.showToastNotification("Unable to remove list: " + error.getMessage());
+                    }
+                });
             }
+            public void onDone(Boolean result) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        //TODO: check for result value
+                        mListsAdapter.remove(adapterIndex);
+                        mListsAdapter.notifyDataSetChanged();
 
-            mListsAdapter.remove(adapterIndex);
-            mListsAdapter.notifyDataSetChanged();
-
-            mList.invalidate();
-        } catch (Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".removeList(): Error.");
-        }
+                        mList.invalidate();
+                    }
+                });
+            }
+        });
     }
 
-    private void deleteListItem(String listID, int adapterIndex) {
+    private void deleteListItem(String listID, final int adapterIndex) {
         try {
             String id = mItemsAdapter.getItem(adapterIndex).getId();
-            boolean result = new ItemRemoveTask(null, this).execute(listID, id).get();
-            if (!result) {
-                Utility.showToastNotification("Unable to remove item");
-                return;
-            }
+            new RemoveListItemOperation(null, this, listID, Integer.valueOf(id)).executeAsync().setCallback(new ICallback<Boolean>() {
+                    public void onError(Throwable error) {
+                        runOnUiThread( new Runnable() {
+                            @Override
+                            public void run() {
+                                Utility.showToastNotification("Unable to remove item");
+                            }
+                        });
+                    }
+                    public void onDone(final Boolean result) {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                if(!result) {
+                                    //TODO: check for result value
+                                    mItemsAdapter.remove(adapterIndex);
+                                    mItemsAdapter.notifyDataSetChanged();
 
-            mItemsAdapter.remove(adapterIndex);
-            mItemsAdapter.notifyDataSetChanged();
-
-            mList.invalidate();
+                                    mList.invalidate();
+                                } else {
+                                    Utility.showToastNotification("Unable to remove item");
+                                }
+                            }
+                        });
+                    }
+            });
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".removeItem(): Error.");
         }
     }
 
     public void readList(String title, int index) {
-        try {
-            mSelectedListId = mListsAdapter.getItem(index).getId();
-            List<Object> items = new ListReadTask(null, this).execute(mSelectedListId).get();
-
-            if (items == null) {
-                Utility.showToastNotification("Unable to get list items");;
-                return;
+        mSelectedListId = mListsAdapter.getItem(index).getId();
+        new GetListItemsOperation(null, this, mSelectedListId).executeAsync().setCallback(new ICallback<List<Object>>() {
+            public void onError(final Throwable error) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        Utility.showToastNotification("Unable to get list items: " + error.getMessage());
+                    }
+                });
             }
-
-            populateItems(items);
-
-        } catch (Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".viewList(): Error.");
-            Utility.showToastNotification("Unable to get list items");
-        }
+            public void onDone(final List<Object> result) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        populateItems(result);
+                    }
+                });
+            }
+        });
     }
 
     private void readListItem(int position) {
@@ -340,17 +402,26 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
     }
 
     public void createList() {
-        try {
-            Entity newList = new ListCreateTask(null, this).execute().get();
-            if (newList == null) {
-                Utility.showAlertDialog(getString(R.string.main_list_create_failure), this);
-                return;
-            }
 
-            addEntity(newList, mListsAdapter);
-        } catch (Exception e) {
-            Utility.showToastNotification(getString(R.string.main_list_create_failure));
-        }
+        Builder builder = new Entity.Builder("SP.List").set("BaseTemplate", 100).
+                set("Title", "List, created using API").set("Description", "SDK Playground");
+
+        new CreateListOperation(null, this, builder).executeAsync().setCallback(new ICallback<Entity>() {
+            public void onError(Throwable error) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        Utility.showToastNotification(getString(R.string.main_list_create_failure));
+                    }
+                });
+            }
+            public void onDone(final Entity result) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        addEntity(result, mListsAdapter);
+                    }
+                });
+            }
+        });
     }
 
     private void createListItem(final Item item) {
@@ -363,13 +434,30 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
                     Builder builder = new Builder().set("Title", item.getTitle()).set("Image", image);
 
                     // Push it to the selected list
-                    Entity newItem = new ItemCreateTask(null, ListsActivity.this).execute(mSelectedListId, builder).get();
-                    if (newItem == null) {
-                        Utility.showToastNotification(getString(R.string.main_item_create_failure));
-                        return;
-                    }
+                    new CreateListItemOperation(null, ListsActivity.this, mSelectedListId, builder).executeAsync().setCallback( new ICallback<Entity>() {
 
-                    addEntity(newItem, mItemsAdapter);
+                        @Override
+                        public void onError(Throwable error) {
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    Utility.showToastNotification(getString(R.string.main_item_create_failure));
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onDone(final Entity result) {
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    if(result != null) {
+                                        addEntity(result, mItemsAdapter);
+                                    } else {
+                                        Utility.showToastNotification(getString(R.string.main_item_create_failure));
+                                    }
+                                }
+                            });
+                        }
+                    });
                 } catch (Exception e) {
                     Utility.showAlertDialog(getString(R.string.main_item_create_failure), ListsActivity.this);
                     Logger.logApplicationException(e, getClass().getSimpleName() + ".addNewItem(): Error.");
@@ -426,39 +514,41 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
         return adapter;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public void onExecutionComplete(final BaseOperation operation, final boolean executionResult) {
-        runOnUiThread(new Runnable() {
+    public void onDone(final String result) {
+        runOnUiThread( new Runnable() {
+            @Override
             public void run() {
-                if (operation instanceof CreateFileOperation) {
-                    if (executionResult) {
-                        // Getting filename from URI
-                        URI uri = URI.create((String) operation.getResult());
-                        String[] splittedPath = uri.getPath().split("\\/");
-                        String filename = splittedPath[splittedPath.length - 1];
+                // Getting filename from URI
+                URI uri = URI.create(result);
+                String[] splittedPath = uri.getPath().split("\\/");
+                String filename = splittedPath[splittedPath.length - 1];
 
-                        if (mItem == null) {
-                            mItem = new Item().setTitle(filename);
-                        }
-                        mItem.setImageUrl(uri);
-
-                        // Updating dialog UI
-                        TextView attachImageButton = (TextView) mCreateItemDialog.findViewById(R.id.dialog_create_item_attach_image);
-                        attachImageButton.setText(R.string.main_item_create_dialog_attached_image);
-                        attachImageButton.setBackgroundColor(Color.GREEN);
-                        attachImageButton.setClickable(false);
-
-                        TextView imageUrlButton = (TextView) mCreateItemDialog.findViewById(R.id.dialog_create_item_url);
-                        imageUrlButton.setText(uri.toString());
-                        imageUrlButton.setBackgroundColor(Color.GREEN);
-                        imageUrlButton.setClickable(false);
-                    } else {
-                        Utility.showToastNotification("File upload failed");
-                    }
-                } else if (operation instanceof GetListsOperation) {
-                    populateLists(operation, executionResult);
+                if (mItem == null) {
+                    mItem = new Item().setTitle(filename);
                 }
+                mItem.setImageUrl(uri);
+
+                // Updating dialog UI
+                TextView attachImageButton = (TextView) mCreateItemDialog.findViewById(R.id.dialog_create_item_attach_image);
+                attachImageButton.setText(R.string.main_item_create_dialog_attached_image);
+                attachImageButton.setBackgroundColor(Color.GREEN);
+                attachImageButton.setClickable(false);
+
+                TextView imageUrlButton = (TextView) mCreateItemDialog.findViewById(R.id.dialog_create_item_url);
+                imageUrlButton.setText(uri.toString());
+                imageUrlButton.setBackgroundColor(Color.GREEN);
+                imageUrlButton.setClickable(false);
+            }
+        });
+    }
+
+    @Override
+    public void onError(final Throwable error) {
+        runOnUiThread( new Runnable() {
+            @Override
+            public void run() {
+                Utility.showToastNotification("File upload failed: " + error.getMessage());
             }
         });
     }
@@ -482,7 +572,6 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
         findViewById(R.id.add_list_button).setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.list_label)).setText(R.string.main_list_label_lists);
 
-
         ((Button) findViewById(R.id.add_list_button)).setText(getString(R.string.main_list_create));
 
         mList.setOnItemClickListener(new OnItemClickListener() {
@@ -503,28 +592,20 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
      * @param operation Server operation
      * @param executionResult execution result flag.
      */
-    private void populateLists(@SuppressWarnings("rawtypes") final BaseOperation operation, final boolean executionResult) {
+    private void populateLists(List<Object> lists) {
         try {
-            if (executionResult != true) {
-                setExecutionStatus(false, getString(R.string.main_status_error));
-                return;
-            } else {
-                setExecutionStatus(true, null);
-            }
-
-            mListsAdapter = fillAdapter(((GetListsOperation) operation).getResult(), true);
-
+            setExecutionStatus(true, null);
+            mListsAdapter = fillAdapter(lists, true);
             showLists();
-
         } catch (Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".run(): Error.");
+            Logger.logApplicationException(e, getClass().getSimpleName() + ".populateLists(): Error.");
             setExecutionStatus(false, getString(R.string.main_status_error) + getString(R.string.main_status_error_retrieve_lists));
         }
     }
 
     private void setExecutionStatus(boolean visible, String message) {
         TextView status = (TextView) findViewById(R.id.pending_request_text_stub);
-        if(visible) {
+        if (visible) {
             status.setVisibility(View.GONE);
         } else {
             status.setVisibility(View.VISIBLE);
@@ -562,7 +643,6 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
         return super.onKeyDown(keyCode, event);
     }
 
-
     /**
      * Shows NTLM authentication dialog.
      */
@@ -576,17 +656,16 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
             TextView cancelButton = (TextView) dialog.findViewById(R.id.main_login_dialog_cancel_button);
             TextView loginButton = (TextView) dialog.findViewById(R.id.main_login_dialog_login_button);
 
-
             final SharePointCredentials creds = (SharePointCredentials) AuthPreferences.loadCredentials();
             String login = null, pass = null;
-            if(creds != null) {
+            if (creds != null) {
                 login = creds.getLogin();
                 pass = creds.getPassword();
             }
 
-            EditText editText = (EditText)dialog.findViewById(R.id.main_login_dialog_login);
+            EditText editText = (EditText) dialog.findViewById(R.id.main_login_dialog_login);
             editText.setText(TextUtils.isEmpty(login) ? "" : login);
-            editText = (EditText)dialog.findViewById(R.id.main_login_dialog_password);
+            editText = (EditText) dialog.findViewById(R.id.main_login_dialog_password);
             editText.setText(TextUtils.isEmpty(pass) ? "" : pass);
 
             OnClickListener listener = new OnClickListener() {
@@ -641,9 +720,9 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
             TextView saveButton = (TextView) dialog.findViewById(R.id.dialog_create_item_ok);
             TextView attachImageButton = (TextView) dialog.findViewById(R.id.dialog_create_item_attach_image);
 
-            EditText editText = (EditText)dialog.findViewById(R.id.dialog_create_item_name);
+            EditText editText = (EditText) dialog.findViewById(R.id.dialog_create_item_name);
             editText.setText(name);
-            editText = (EditText)dialog.findViewById(R.id.dialog_create_item_url);
+            editText = (EditText) dialog.findViewById(R.id.dialog_create_item_url);
             editText.setText(url);
 
             OnClickListener listener = new OnClickListener() {
@@ -698,15 +777,30 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
         runOnUiThread(new Runnable() {
             public void run() {
                 try {
-                    Entity image = new Entity.Builder("SP.FieldUrlValue").set("Description", item.getTitle()).set("Url", item.getImageUrl().toString())
-                            .build();
+                    Entity image = new Entity.Builder("SP.FieldUrlValue").set("Description", item.getTitle())
+                            .set("Url", item.getImageUrl().toString()).build();
                     Builder builder = new Builder().set("Title", item.getTitle()).set("Image", image);
-                    boolean updated = new ItemUpdateTask(null, ListsActivity.this).execute(mSelectedListId, Integer.valueOf(item.getId()), builder).get();
-                    if (updated) {
-                        Utility.showToastNotification("Updated successfully");
-                    } else {
-                        Utility.showToastNotification("Failure on update");
-                    }
+
+                    new UpdateListItemOperation(null, ListsActivity.this, mSelectedListId, Integer.valueOf(item.getId()), builder).executeAsync()
+                            .setCallback(new ICallback<Boolean>() {
+                                public void onError(Throwable error) {
+                                    runOnUiThread(new Runnable() {
+                                        public void run() {
+                                            Utility.showToastNotification("Failure on update");
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public void onDone(final Boolean result) {
+                                    runOnUiThread(new Runnable() {
+                                        public void run() {
+                                            Utility.showToastNotification(result ? "Updated successfully" : "Failure on update");
+                                        }
+                                    });
+
+                                }
+                            });
                 } catch (Exception e) {
                     Logger.logApplicationException(e, getClass().getSimpleName() + ".updateListItem(): Error.");
                 }
@@ -752,11 +846,8 @@ public class ListsActivity extends Activity implements OnOperaionExecutionListen
                         }
                     }
 
-                    String result = new FileCreateTask(this, this).execute(IMAGE_LIB_NAME, fileName, image).get();
-                    if (result == null) {
-                        Utility.showToastNotification("File upload failed");
-                    }
-
+                    //TODO: Fix constructor arguments usage
+                    new CreateFileOperation(null, this, IMAGE_LIB_NAME, fileName, image).executeAsync().setCallback(this);
                 } catch (Exception e) {
                     Logger.logApplicationException(e, getClass().getSimpleName() + ".onActivityResult(): Error.");
                 }

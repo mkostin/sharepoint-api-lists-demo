@@ -4,11 +4,11 @@ import android.content.Context;
 
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.network.operations.ListsMetadataOperation;
-import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
+import com.microsoft.opentech.office.odata.async.ICallback;
 
 public class MetadataReceiveTask extends ODataAsyncTask<Void, String> {
 
-    public MetadataReceiveTask(OnOperaionExecutionListener listener, Context context) {
+    public MetadataReceiveTask(ICallback<String> listener, Context context) {
         super(listener, context);
     }
 

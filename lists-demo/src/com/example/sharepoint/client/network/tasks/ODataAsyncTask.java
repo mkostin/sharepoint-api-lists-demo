@@ -3,15 +3,15 @@ package com.example.sharepoint.client.network.tasks;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
+import com.microsoft.opentech.office.odata.async.ICallback;
 
 public abstract class ODataAsyncTask<IN, OUT> extends AsyncTask<IN, Void, OUT> {
 
-    protected final OnOperaionExecutionListener mListener;
+    protected final ICallback<OUT> mListener;
     
     protected final Context mContext;
     
-    public ODataAsyncTask(OnOperaionExecutionListener listener, Context context) {
+    public ODataAsyncTask(ICallback<OUT> listener, Context context) {
         mListener = listener;
         mContext = context;
     }

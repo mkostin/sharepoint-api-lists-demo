@@ -12,33 +12,35 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.example.sharepoint.client.R;
-import com.example.sharepoint.client.network.tasks.ItemReadTask;
-import com.microsoft.opentech.office.network.BaseOperation;
-import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
+import com.example.sharepoint.client.logger.Logger;
 import com.microsoft.opentech.office.network.lists.GetItemOperation;
 import com.microsoft.opentech.office.odata.Entity;
+import com.microsoft.opentech.office.odata.async.ICallback;
 
-public class ListItemActivity extends Activity implements OnOperaionExecutionListener {
+public class ListItemActivity extends Activity implements ICallback<Entity> {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_list_item);
 
-        Bundle extras = getIntent().getExtras();
-
-        new ItemReadTask(this, this).execute(extras.getString("listGUID"), extras.getInt("itemId"));
+        try {
+            Bundle extras = getIntent().getExtras();
+            new GetItemOperation(null, this, extras.getString("listGUID"), extras.getInt("itemId")).executeAsync().setCallback(this);
+        } catch (Exception e) {
+            Logger.logApplicationException(e, getClass().getSimpleName() + ".onCreate(): Error.");
+        }
     }
 
-    @Override
-    public void onExecutionComplete(final BaseOperation operation, final boolean executionResult) {
+    public void onDone(final Entity result) {
         runOnUiThread(new Runnable() {
             public void run() {
-                Entity result = ((GetItemOperation) operation).getResult();
                 showFields(result);
             }
         });
     }
+
+    public void onError(Throwable error) {}
 
     private void showFields(Entity value) {
         findViewById(R.id.get_fields_text_stub).setVisibility(View.GONE);
@@ -58,7 +60,7 @@ public class ListItemActivity extends Activity implements OnOperaionExecutionLis
             } else {
                 text = next.second.toString();
             }
-            
+
             TableRow row = new TableRow(this);
             TextView titleView = new TextView(this);
             titleView.setText(title);
