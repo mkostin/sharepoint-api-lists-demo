@@ -1,8 +1,8 @@
 package com.example.sharepoint.client.preferences;
 
-import android.content.Context;
 
 import com.example.sharepoint.client.ListsDemoApplication;
+import com.example.sharepoint.client.event.CredentialsStoredEvent;
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.utils.LocalPersistence;
 import com.example.sharepoint.client.utils.Utility;
@@ -27,11 +27,11 @@ public class AuthPreferences {
      * Stores user {@linkplain ISharePointCredentials} into SharedPreferences.
      *
      * @param credentials Authentication credentials.
-     * @param contex Application context.
      */
-    public static void storeCredentials(ISharePointCredentials credentials, Context contex){
+    public static void storeCredentials(ISharePointCredentials credentials){
         try {
-            LocalPersistence.writeObjectToFile(contex, credentials, AUTH_PREFERENCES_FILENAME);
+            LocalPersistence.writeObjectToFile(ListsDemoApplication.getContext(), credentials, AUTH_PREFERENCES_FILENAME);
+            new CredentialsStoredEvent(credentials).submit();
         } catch (final Exception e) {
             Logger.logApplicationException(e, AuthPreferences.class.getSimpleName() + ".storeCredentials(): Error.");
             Utility.showAlertDialog(AuthPreferences.class.getSimpleName() + ".storeCredentials(): Failed. " + e.toString(), ListsDemoApplication.getContext());
@@ -41,20 +41,13 @@ public class AuthPreferences {
     /**
      * Returns user {@linkplain ISharePointCredentials} from SharedPreferences.
      *
-     * @param contex Application context.
-     *
      * @return Initialized {@linkplain ISharePointCredentials} instance. In case of exception returns <code>null</code>.
      */
-    public static ISharePointCredentials loadCredentials(Context contex){
-        try {
-            ISharePointCredentials credentials = null;
+    public static ISharePointCredentials loadCredentials(){
             try{
-                credentials = (ISharePointCredentials) LocalPersistence.readObjectFromFile(contex, AUTH_PREFERENCES_FILENAME);
-            } catch(Exception e) {
-                Utility.showAlertDialog(e.toString(), ListsDemoApplication.getContext());
-            }
-            return credentials;
+            return (ISharePointCredentials) LocalPersistence.readObjectFromFile(ListsDemoApplication.getContext(), AUTH_PREFERENCES_FILENAME);
         } catch (final Exception e) {
+            Logger.logApplicationException(e, AuthPreferences.class.getSimpleName() + ".loadCredentials(): Error.");
             Utility.showAlertDialog(AuthPreferences.class.getSimpleName() + ".loadCredentials(): Failed. " + e.toString(), ListsDemoApplication.getContext());
         }
         return null;

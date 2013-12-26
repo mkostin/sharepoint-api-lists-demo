@@ -21,6 +21,13 @@
     <string name="main_item_create_failure">Unable to create item</string>
     <string name="main_item_create">Add new item</string>
 
+	<string name="main_item_image_title_default">Sample item</string>
+    <string name="main_item_image_url_default">http://www.azulsystems.com/sites/default/files/images/Microsoft_open_tech_logo.jpg</string>
+    <string name="main_list_label_lists">Available lists:</string>
+    <string name="main_list_label_items">Available items:</string>
+    <string name="main_status_error">Error</string>
+    <string name="main_status_error_retrieve_lists">: failed to retrieve lists.</string>
+
 	<string name="main_item_create_dialog_title">Add Item</string>
     <string name="main_item_create_dialog_name">Name</string>
 	<string name="main_item_create_dialog_address">Image URL</string>
@@ -29,15 +36,14 @@
     <string name="main_item_create_dialog_save">Create</string>
     <string name="main_item_create_dialog_cancel">@android:string/cancel</string>
 
-	<string name="main_item_image_title_default">Sample item</string>
-    <string name="main_item_image_url_default">http://www.azulsystems.com/sites/default/files/images/Microsoft_open_tech_logo.jpg</string>
-    <string name="main_list_label_lists">Available lists:</string>
-    <string name="main_list_label_items">Available items:</string>
-    <string name="main_status_error">Error</string>
-    <string name="main_status_error_retrieve_lists">: failed to retrieve lists.</string>
+    <string name="main_login_dialog_login">Login</string>
+    <string name="main_login_dialog_cancel">@android:string/cancel</string>
+    <string name="main_login_dialog_passsword">Password</string>
+	<string name="main_login_dialog_password_hint">name@domain.com</string>
 
     <string name="settings_auth_label">Authentication method:</string>
     <string name="settings_auth_opt_cookie">Cookie</string>
     <string name="settings_auth_opt_oauth">OAuth</string>
     <string name="settings_auth_opt_ntlm">NTLM</string>
+
 </resources>

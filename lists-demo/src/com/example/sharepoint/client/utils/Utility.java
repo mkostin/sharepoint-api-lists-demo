@@ -38,7 +38,7 @@ public class Utility {
     public static void showAlertDialog(String error, Context context) {
         try {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle(ListsDemoApplication.getContext().getResources().getString(R.string.alert_dialog_title));
+            builder.setTitle(context.getResources().getString(R.string.alert_dialog_title));
 
             builder.setMessage(error);
             builder.setPositiveButton(ListsDemoApplication.getContext().getResources().getString(R.string.alert_dialog_ok), new DialogInterface.OnClickListener() {

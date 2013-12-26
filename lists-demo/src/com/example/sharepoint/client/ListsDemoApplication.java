@@ -3,6 +3,7 @@ package com.example.sharepoint.client;
 import android.app.Application;
 import android.content.Context;
 
+import com.example.sharepoint.client.event.bus.EventBus;
 import com.example.sharepoint.client.utils.Utility;
 
 /**
@@ -12,12 +13,13 @@ public class ListsDemoApplication extends Application {
     /**
      * A stored application context.
      */
-    private static Context mContext;
+    private static Context sContext;
 
     public void onCreate() {
         try {
             super.onCreate();
-            ListsDemoApplication.mContext = getApplicationContext();
+            ListsDemoApplication.sContext = getApplicationContext();
+            EventBus.init();
         } catch (Exception e) {
             Utility.showAlertDialog(ListsDemoApplication.class.getSimpleName() + ".onCreate(): Failed. " + e.toString(), ListsDemoApplication.this);
         }
@@ -29,6 +31,6 @@ public class ListsDemoApplication extends Application {
      * @return The application context.
      */
     public static Context getContext() {
-        return ListsDemoApplication.mContext;
+        return ListsDemoApplication.sContext;
     }
 }

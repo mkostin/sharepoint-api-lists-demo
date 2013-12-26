@@ -8,8 +8,8 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.params.CoreProtocolPNames;
 
-import com.example.sharepoint.client.Constants;
 import com.example.sharepoint.client.network.auth.ntlm.NTLMSchemeFactory;
+import com.example.sharepoint.client.preferences.AuthPreferences;
 import com.microsoft.opentech.office.network.NetworkException;
 import com.microsoft.opentech.office.network.auth.AbstractBasicAuthenticator;
 
@@ -55,11 +55,19 @@ public class NTLMAuthenticator extends AbstractBasicAuthenticator {
 
     @Override
     protected String getUsername() {
-        return Constants.USERNAME;
+        final SharePointCredentials creds = (SharePointCredentials) AuthPreferences.loadCredentials();
+        if(creds != null) {
+            return creds.getLogin();
+        }
+        return "";
     }
 
     @Override
     protected String getPassword() {
-        return Constants.PASSWORD;
+        final SharePointCredentials creds = (SharePointCredentials) AuthPreferences.loadCredentials();
+        if(creds != null) {
+            return creds.getPassword();
+        }
+        return "";
     }
 }

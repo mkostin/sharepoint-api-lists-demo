@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 
 import android.content.Context;
 
-import com.example.sharepoint.client.ListsDemoApplication;
+import com.example.sharepoint.client.logger.Logger;
 
 /**
  * Serializes/deserializes an object to/from a private local file.
@@ -34,7 +34,7 @@ public class LocalPersistence {
             fileOut.getFD().sync();
 
         } catch (IOException ex) {
-            Utility.showAlertDialog(ex.toString(), ListsDemoApplication.getContext());
+            Logger.logApplicationException(ex, LocalPersistence.class.getSimpleName() + ".writeObjectToFile(): Error.");
         } finally {
             if (objectOut != null) {
                 objectOut.close();
@@ -61,7 +61,7 @@ public class LocalPersistence {
             objectIn = new ObjectInputStream(fileIn);
             object = objectIn.readObject();
         } catch (Exception ex) {
-        	Utility.showAlertDialog(ex.toString(), ListsDemoApplication.getContext());
+        	Logger.logApplicationException(ex, LocalPersistence.class.getSimpleName() + ".readObjectFromFile(): Error.");
         } finally {
             if (objectIn != null) {
                 objectIn.close();

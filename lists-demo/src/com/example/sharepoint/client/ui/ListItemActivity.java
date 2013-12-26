@@ -1,9 +1,11 @@
 package com.example.sharepoint.client.ui;
 
 import java.util.Iterator;
+import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.View;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -14,9 +16,7 @@ import com.example.sharepoint.client.network.tasks.ItemReadTask;
 import com.microsoft.opentech.office.network.BaseOperation;
 import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
 import com.microsoft.opentech.office.network.lists.GetItemOperation;
-import com.msopentech.odatajclient.engine.data.ODataComplexValue;
-import com.msopentech.odatajclient.engine.data.ODataEntity;
-import com.msopentech.odatajclient.engine.data.ODataProperty;
+import com.microsoft.opentech.office.odata.Entity;
 
 public class ListItemActivity extends Activity implements OnOperaionExecutionListener {
 
@@ -34,32 +34,31 @@ public class ListItemActivity extends Activity implements OnOperaionExecutionLis
     public void onExecutionComplete(final BaseOperation operation, final boolean executionResult) {
         runOnUiThread(new Runnable() {
             public void run() {
-                ODataEntity result = ((GetItemOperation) operation).getResult();
-                ODataComplexValue fieldContainer = result.getProperty("d").getComplexValue();
-                showFields(fieldContainer);
+                Entity result = ((GetItemOperation) operation).getResult();
+                showFields(result);
             }
         });
     }
 
-    private void showFields(ODataComplexValue value) {
+    private void showFields(Entity value) {
         findViewById(R.id.get_fields_text_stub).setVisibility(View.GONE);
         TableLayout table = (TableLayout) findViewById(R.id.item_fields_table);
         table.setVisibility(View.VISIBLE);
 
-        Iterator<ODataProperty> iterator = value.iterator();
+        Iterator<Pair<String, Object>> iterator = value.iterator();
         while (iterator.hasNext()) {
-            ODataProperty next = iterator.next();
-            String title = next.getName(), text;
-            if (next.hasNullValue()) {
+            Pair<String, Object> next = iterator.next();
+            String title = next.first, text;
+            if (next.second == null) {
                 text = "(null)";
-            } else if (next.hasCollectionValue()) {
+            } else if (next.second instanceof List) {
                 text = "(collection)";
-            } else if (next.hasComplexValue()) {
+            } else if (next.second instanceof Entity) {
                 text = "(complex value)";
             } else {
-                text = next.getPrimitiveValue().toString();
+                text = next.second.toString();
             }
-
+            
             TableRow row = new TableRow(this);
             TextView titleView = new TextView(this);
             titleView.setText(title);

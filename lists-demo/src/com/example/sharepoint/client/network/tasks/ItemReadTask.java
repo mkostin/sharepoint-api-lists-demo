@@ -5,15 +5,15 @@ import android.content.Context;
 import com.example.sharepoint.client.logger.Logger;
 import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
 import com.microsoft.opentech.office.network.lists.GetItemOperation;
-import com.msopentech.odatajclient.engine.data.ODataEntity;
+import com.microsoft.opentech.office.odata.Entity;
 
-public class ItemReadTask extends ODataAsyncTask<Object, ODataEntity> {
+public class ItemReadTask extends ODataAsyncTask<Object, Entity> {
     public ItemReadTask(OnOperaionExecutionListener listener, Context context) {
         super(listener, context);
     }
     
     @Override
-    protected ODataEntity doInBackground(Object... params) {
+    protected Entity doInBackground(Object... params) {
         try {
             GetItemOperation oper = new GetItemOperation(mListener, mContext, (String)params[0], (Integer)params[1]);
             oper.execute();
