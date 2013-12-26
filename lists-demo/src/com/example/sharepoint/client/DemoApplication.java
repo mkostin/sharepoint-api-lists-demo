@@ -9,7 +9,7 @@ import com.example.sharepoint.client.utils.Utility;
 /**
  * The application class, keeps stored application context.
  */
-public class ListsDemoApplication extends Application {
+public class DemoApplication extends Application {
     /**
      * A stored application context.
      */
@@ -18,10 +18,10 @@ public class ListsDemoApplication extends Application {
     public void onCreate() {
         try {
             super.onCreate();
-            ListsDemoApplication.sContext = getApplicationContext();
+            DemoApplication.sContext = getApplicationContext();
             EventBus.init();
         } catch (Exception e) {
-            Utility.showAlertDialog(ListsDemoApplication.class.getSimpleName() + ".onCreate(): Failed. " + e.toString(), ListsDemoApplication.this);
+            Utility.showAlertDialog(DemoApplication.class.getSimpleName() + ".onCreate(): Failed. " + e.toString(), DemoApplication.this);
         }
     }
 
@@ -31,6 +31,6 @@ public class ListsDemoApplication extends Application {
      * @return The application context.
      */
     public static Context getContext() {
-        return ListsDemoApplication.sContext;
+        return DemoApplication.sContext;
     }
 }

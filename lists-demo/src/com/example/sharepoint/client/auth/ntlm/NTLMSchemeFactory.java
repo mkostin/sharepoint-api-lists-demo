@@ -1,4 +1,4 @@
-package com.example.sharepoint.client.network.auth.ntlm;
+package com.example.sharepoint.client.auth.ntlm;
 
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;

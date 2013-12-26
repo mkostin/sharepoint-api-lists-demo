@@ -1,6 +1,6 @@
 package com.example.sharepoint.client.event;
 
-import com.example.sharepoint.client.network.auth.AuthType;
+import com.example.sharepoint.client.auth.AuthType;
 
 /**
  * Credentials changed event.

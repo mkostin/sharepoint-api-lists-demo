@@ -1,4 +1,4 @@
-package com.example.sharepoint.client.network.auth.ntlm;
+package com.example.sharepoint.client.auth.ntlm;
 
 import java.io.IOException;
 

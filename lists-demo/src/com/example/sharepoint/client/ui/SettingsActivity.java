@@ -10,10 +10,10 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.example.sharepoint.client.R;
+import com.example.sharepoint.client.auth.AuthType;
+import com.example.sharepoint.client.auth.SharePointCredentials;
 import com.example.sharepoint.client.event.AuthTypeChangedEvent;
 import com.example.sharepoint.client.logger.Logger;
-import com.example.sharepoint.client.network.auth.AuthType;
-import com.example.sharepoint.client.network.auth.SharePointCredentials;
 import com.example.sharepoint.client.preferences.AuthPreferences;
 
 /**

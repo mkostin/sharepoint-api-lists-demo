@@ -1,4 +1,4 @@
-package com.example.sharepoint.client.network.auth;
+package com.example.sharepoint.client.auth;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
@@ -8,7 +8,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.params.CoreProtocolPNames;
 
-import com.example.sharepoint.client.network.auth.ntlm.NTLMSchemeFactory;
+import com.example.sharepoint.client.auth.ntlm.NTLMSchemeFactory;
 import com.example.sharepoint.client.preferences.AuthPreferences;
 import com.microsoft.opentech.office.network.NetworkException;
 import com.microsoft.opentech.office.network.auth.AbstractBasicAuthenticator;

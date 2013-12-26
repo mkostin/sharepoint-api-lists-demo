@@ -1,7 +1,7 @@
 package com.example.sharepoint.client.preferences;
 
 
-import com.example.sharepoint.client.ListsDemoApplication;
+import com.example.sharepoint.client.DemoApplication;
 import com.example.sharepoint.client.event.CredentialsStoredEvent;
 import com.example.sharepoint.client.logger.Logger;
 import com.example.sharepoint.client.utils.LocalPersistence;
@@ -30,11 +30,11 @@ public class AuthPreferences {
      */
     public static void storeCredentials(ISharePointCredentials credentials){
         try {
-            LocalPersistence.writeObjectToFile(ListsDemoApplication.getContext(), credentials, AUTH_PREFERENCES_FILENAME);
+            LocalPersistence.writeObjectToFile(DemoApplication.getContext(), credentials, AUTH_PREFERENCES_FILENAME);
             new CredentialsStoredEvent(credentials).submit();
         } catch (final Exception e) {
             Logger.logApplicationException(e, AuthPreferences.class.getSimpleName() + ".storeCredentials(): Error.");
-            Utility.showAlertDialog(AuthPreferences.class.getSimpleName() + ".storeCredentials(): Failed. " + e.toString(), ListsDemoApplication.getContext());
+            Utility.showAlertDialog(AuthPreferences.class.getSimpleName() + ".storeCredentials(): Failed. " + e.toString(), DemoApplication.getContext());
         }
     }
 
@@ -45,10 +45,10 @@ public class AuthPreferences {
      */
     public static ISharePointCredentials loadCredentials(){
             try{
-            return (ISharePointCredentials) LocalPersistence.readObjectFromFile(ListsDemoApplication.getContext(), AUTH_PREFERENCES_FILENAME);
+            return (ISharePointCredentials) LocalPersistence.readObjectFromFile(DemoApplication.getContext(), AUTH_PREFERENCES_FILENAME);
         } catch (final Exception e) {
             Logger.logApplicationException(e, AuthPreferences.class.getSimpleName() + ".loadCredentials(): Error.");
-            Utility.showAlertDialog(AuthPreferences.class.getSimpleName() + ".loadCredentials(): Failed. " + e.toString(), ListsDemoApplication.getContext());
+            Utility.showAlertDialog(AuthPreferences.class.getSimpleName() + ".loadCredentials(): Failed. " + e.toString(), DemoApplication.getContext());
         }
         return null;
     }

@@ -1,4 +1,4 @@
-package com.example.sharepoint.client.network.auth;
+package com.example.sharepoint.client.auth;
 
 import com.microsoft.opentech.office.network.auth.SharePointCredentialsImpl;
 

@@ -1,4 +1,4 @@
-package com.example.sharepoint.client.network.auth;
+package com.example.sharepoint.client.auth;
 
 /**
  * Authentication type for connections.

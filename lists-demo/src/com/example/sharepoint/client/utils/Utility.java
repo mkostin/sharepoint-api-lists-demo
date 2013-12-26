@@ -21,7 +21,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.sharepoint.client.ListsDemoApplication;
+import com.example.sharepoint.client.DemoApplication;
 import com.example.sharepoint.client.R;
 
 /**
@@ -41,7 +41,7 @@ public class Utility {
             builder.setTitle(context.getResources().getString(R.string.alert_dialog_title));
 
             builder.setMessage(error);
-            builder.setPositiveButton(ListsDemoApplication.getContext().getResources().getString(R.string.alert_dialog_ok), new DialogInterface.OnClickListener() {
+            builder.setPositiveButton(DemoApplication.getContext().getResources().getString(R.string.alert_dialog_ok), new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
                 }
@@ -109,7 +109,7 @@ public class Utility {
      */
     public static void showToastNotification(String text) {
         try {
-            Toast.makeText(ListsDemoApplication.getContext(), text, Toast.LENGTH_LONG).show();
+            Toast.makeText(DemoApplication.getContext(), text, Toast.LENGTH_LONG).show();
         } catch (final Exception e) {
             Log.d(Utility.class.getSimpleName(), "showToastNotification(): Failed.", e);
         }

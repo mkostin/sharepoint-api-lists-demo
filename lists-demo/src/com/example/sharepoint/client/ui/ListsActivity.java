@@ -35,14 +35,14 @@ import android.widget.TextView;
 import com.example.sharepoint.client.Constants;
 import com.example.sharepoint.client.R;
 import com.example.sharepoint.client.adapters.ListsAdapter;
+import com.example.sharepoint.client.auth.AuthType;
+import com.example.sharepoint.client.auth.CookieAuthenticator;
+import com.example.sharepoint.client.auth.NTLMAuthenticator;
+import com.example.sharepoint.client.auth.SharePointCredentials;
 import com.example.sharepoint.client.data.Item;
 import com.example.sharepoint.client.event.AuthTypeChangedEvent;
 import com.example.sharepoint.client.event.bus.EventBus;
 import com.example.sharepoint.client.logger.Logger;
-import com.example.sharepoint.client.network.auth.AuthType;
-import com.example.sharepoint.client.network.auth.CookieAuthenticator;
-import com.example.sharepoint.client.network.auth.NTLMAuthenticator;
-import com.example.sharepoint.client.network.auth.SharePointCredentials;
 import com.example.sharepoint.client.preferences.AuthPreferences;
 import com.example.sharepoint.client.utils.Utility;
 import com.microsoft.opentech.office.Configuration;
@@ -141,20 +141,11 @@ public class ListsActivity extends Activity implements ICallback<String> {
         setExecutionStatus(true, getString(R.string.pending_request));
         new GetListsOperation(null, this).executeAsync().setCallback(new ICallback<List<Object>>() {
             public void onError(Throwable error) {
-                runOnUiThread( new Runnable() {
-                    @Override
-                    public void run() {
-                        setExecutionStatus(false, getString(R.string.main_status_error));
-                    }
-                });
+                setExecutionStatus(false, getString(R.string.main_status_error));
             }
 
             public void onDone(final List<Object> result) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        populateLists(result);
-                    }
-                });
+                populateLists(result);
             }
         });
     }
@@ -283,31 +274,21 @@ public class ListsActivity extends Activity implements ICallback<String> {
 
                 @Override
                 public void onError(final Throwable error) {
-                    runOnUiThread( new Runnable() {
-                        @Override
-                        public void run() {
-                            Utility.showToastNotification("Unable to retrieve item: " + error.getMessage());
-                        }
-                    });
+                    Utility.showToastNotification("Unable to retrieve item: " + error.getMessage());
                 }
 
                 @Override
                 public void onDone(final Entity result) {
-                    runOnUiThread( new Runnable() {
-                        @Override
-                        public void run() {
-                            if(result != null) {
-                                String url = "";
-                                if (result.get("Image") != null) {
-                                    url = ((Entity) result.get("Image")).get("Url").toString();
-                                }
-                                mItem = new Item(result.get("Id").toString(), result.get("Title").toString());
-                                showItemDialog(result.get("Title").toString(), url, false);
-                            } else {
-                                Utility.showToastNotification("Unable to retrieve item");
-                            }
+                    if (result != null) {
+                        String url = "";
+                        if (result.get("Image") != null) {
+                            url = ((Entity) result.get("Image")).get("Url").toString();
                         }
-                    });
+                        mItem = new Item(result.get("Id").toString(), result.get("Title").toString());
+                        showItemDialog(result.get("Title").toString(), url, false);
+                    } else {
+                        Utility.showToastNotification("Unable to retrieve item");
+                    }
                 }
             });
         } catch (Exception e) {
@@ -320,22 +301,15 @@ public class ListsActivity extends Activity implements ICallback<String> {
         String id = mListsAdapter.getItem(adapterIndex).getId();
         new RemoveListOperation(null, this, id).executeAsync().setCallback(new ICallback<Boolean>() {
             public void onError(final Throwable error) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        Utility.showToastNotification("Unable to remove list: " + error.getMessage());
-                    }
-                });
+                Utility.showToastNotification("Unable to remove list: " + error.getMessage());
             }
-            public void onDone(Boolean result) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        //TODO: check for result value
-                        mListsAdapter.remove(adapterIndex);
-                        mListsAdapter.notifyDataSetChanged();
 
-                        mList.invalidate();
-                    }
-                });
+            public void onDone(Boolean result) {
+                // TODO: check for result value
+                mListsAdapter.remove(adapterIndex);
+                mListsAdapter.notifyDataSetChanged();
+
+                mList.invalidate();
             }
         });
     }
@@ -344,29 +318,21 @@ public class ListsActivity extends Activity implements ICallback<String> {
         try {
             String id = mItemsAdapter.getItem(adapterIndex).getId();
             new RemoveListItemOperation(null, this, listID, Integer.valueOf(id)).executeAsync().setCallback(new ICallback<Boolean>() {
-                    public void onError(Throwable error) {
-                        runOnUiThread( new Runnable() {
-                            @Override
-                            public void run() {
-                                Utility.showToastNotification("Unable to remove item");
-                            }
-                        });
-                    }
-                    public void onDone(final Boolean result) {
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                                if(!result) {
-                                    //TODO: check for result value
-                                    mItemsAdapter.remove(adapterIndex);
-                                    mItemsAdapter.notifyDataSetChanged();
+                public void onError(Throwable error) {
+                    Utility.showToastNotification("Unable to remove item");
+                }
 
-                                    mList.invalidate();
-                                } else {
-                                    Utility.showToastNotification("Unable to remove item");
-                                }
-                            }
-                        });
+                public void onDone(final Boolean result) {
+                    if (!result) {
+                        // TODO: check for result value
+                        mItemsAdapter.remove(adapterIndex);
+                        mItemsAdapter.notifyDataSetChanged();
+
+                        mList.invalidate();
+                    } else {
+                        Utility.showToastNotification("Unable to remove item");
                     }
+                }
             });
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".removeItem(): Error.");
@@ -377,18 +343,11 @@ public class ListsActivity extends Activity implements ICallback<String> {
         mSelectedListId = mListsAdapter.getItem(index).getId();
         new GetListItemsOperation(null, this, mSelectedListId).executeAsync().setCallback(new ICallback<List<Object>>() {
             public void onError(final Throwable error) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        Utility.showToastNotification("Unable to get list items: " + error.getMessage());
-                    }
-                });
+                Utility.showToastNotification("Unable to get list items: " + error.getMessage());
             }
+
             public void onDone(final List<Object> result) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        populateItems(result);
-                    }
-                });
+                populateItems(result);
             }
         });
     }
@@ -408,18 +367,11 @@ public class ListsActivity extends Activity implements ICallback<String> {
 
         new CreateListOperation(null, this, builder).executeAsync().setCallback(new ICallback<Entity>() {
             public void onError(Throwable error) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        Utility.showToastNotification(getString(R.string.main_list_create_failure));
-                    }
-                });
+                Utility.showToastNotification(getString(R.string.main_list_create_failure));
             }
+
             public void onDone(final Entity result) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        addEntity(result, mListsAdapter);
-                    }
-                });
+                addEntity(result, mListsAdapter);
             }
         });
     }
@@ -434,30 +386,22 @@ public class ListsActivity extends Activity implements ICallback<String> {
                     Builder builder = new Builder().set("Title", item.getTitle()).set("Image", image);
 
                     // Push it to the selected list
-                    new CreateListItemOperation(null, ListsActivity.this, mSelectedListId, builder).executeAsync().setCallback( new ICallback<Entity>() {
+                new CreateListItemOperation(null, ListsActivity.this, mSelectedListId, builder).executeAsync().setCallback(
+                        new ICallback<Entity>() {
+                            @Override
+                            public void onError(Throwable error) {
+                                Utility.showToastNotification(getString(R.string.main_item_create_failure));
+                            }
 
-                        @Override
-                        public void onError(Throwable error) {
-                            runOnUiThread(new Runnable() {
-                                public void run() {
+                            @Override
+                            public void onDone(final Entity result) {
+                                if (result != null) {
+                                    addEntity(result, mItemsAdapter);
+                                } else {
                                     Utility.showToastNotification(getString(R.string.main_item_create_failure));
                                 }
-                            });
-                        }
-
-                        @Override
-                        public void onDone(final Entity result) {
-                            runOnUiThread(new Runnable() {
-                                public void run() {
-                                    if(result != null) {
-                                        addEntity(result, mItemsAdapter);
-                                    } else {
-                                        Utility.showToastNotification(getString(R.string.main_item_create_failure));
-                                    }
-                                }
-                            });
-                        }
-                    });
+                            }
+                        });
                 } catch (Exception e) {
                     Utility.showAlertDialog(getString(R.string.main_item_create_failure), ListsActivity.this);
                     Logger.logApplicationException(e, getClass().getSimpleName() + ".addNewItem(): Error.");
@@ -516,41 +460,31 @@ public class ListsActivity extends Activity implements ICallback<String> {
 
     @Override
     public void onDone(final String result) {
-        runOnUiThread( new Runnable() {
-            @Override
-            public void run() {
-                // Getting filename from URI
-                URI uri = URI.create(result);
-                String[] splittedPath = uri.getPath().split("\\/");
-                String filename = splittedPath[splittedPath.length - 1];
+        // Getting filename from URI
+        URI uri = URI.create(result);
+        String[] splittedPath = uri.getPath().split("\\/");
+        String filename = splittedPath[splittedPath.length - 1];
 
-                if (mItem == null) {
-                    mItem = new Item().setTitle(filename);
-                }
-                mItem.setImageUrl(uri);
+        if (mItem == null) {
+            mItem = new Item().setTitle(filename);
+        }
+        mItem.setImageUrl(uri);
 
-                // Updating dialog UI
-                TextView attachImageButton = (TextView) mCreateItemDialog.findViewById(R.id.dialog_create_item_attach_image);
-                attachImageButton.setText(R.string.main_item_create_dialog_attached_image);
-                attachImageButton.setBackgroundColor(Color.GREEN);
-                attachImageButton.setClickable(false);
+        // Updating dialog UI
+        TextView attachImageButton = (TextView) mCreateItemDialog.findViewById(R.id.dialog_create_item_attach_image);
+        attachImageButton.setText(R.string.main_item_create_dialog_attached_image);
+        attachImageButton.setBackgroundColor(Color.GREEN);
+        attachImageButton.setClickable(false);
 
-                TextView imageUrlButton = (TextView) mCreateItemDialog.findViewById(R.id.dialog_create_item_url);
-                imageUrlButton.setText(uri.toString());
-                imageUrlButton.setBackgroundColor(Color.GREEN);
-                imageUrlButton.setClickable(false);
-            }
-        });
+        TextView imageUrlButton = (TextView) mCreateItemDialog.findViewById(R.id.dialog_create_item_url);
+        imageUrlButton.setText(uri.toString());
+        imageUrlButton.setBackgroundColor(Color.GREEN);
+        imageUrlButton.setClickable(false);
     }
 
     @Override
     public void onError(final Throwable error) {
-        runOnUiThread( new Runnable() {
-            @Override
-            public void run() {
-                Utility.showToastNotification("File upload failed: " + error.getMessage());
-            }
-        });
+        Utility.showToastNotification("File upload failed: " + error.getMessage());
     }
 
     public void onAddButtonClick(View button) {
@@ -784,21 +718,12 @@ public class ListsActivity extends Activity implements ICallback<String> {
                     new UpdateListItemOperation(null, ListsActivity.this, mSelectedListId, Integer.valueOf(item.getId()), builder).executeAsync()
                             .setCallback(new ICallback<Boolean>() {
                                 public void onError(Throwable error) {
-                                    runOnUiThread(new Runnable() {
-                                        public void run() {
-                                            Utility.showToastNotification("Failure on update");
-                                        }
-                                    });
+                                    Utility.showToastNotification("Failure on update");
                                 }
 
                                 @Override
                                 public void onDone(final Boolean result) {
-                                    runOnUiThread(new Runnable() {
-                                        public void run() {
-                                            Utility.showToastNotification(result ? "Updated successfully" : "Failure on update");
-                                        }
-                                    });
-
+                                    Utility.showToastNotification(result ? "Updated successfully" : "Failure on update");
                                 }
                             });
                 } catch (Exception e) {

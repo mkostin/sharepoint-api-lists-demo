@@ -1,4 +1,4 @@
-package com.example.sharepoint.client.network.auth;
+package com.example.sharepoint.client.auth;
 
 import java.net.URI;
 import java.util.ArrayList;

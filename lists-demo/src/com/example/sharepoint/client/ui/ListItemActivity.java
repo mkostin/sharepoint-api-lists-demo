@@ -33,11 +33,7 @@ public class ListItemActivity extends Activity implements ICallback<Entity> {
     }
 
     public void onDone(final Entity result) {
-        runOnUiThread(new Runnable() {
-            public void run() {
-                showFields(result);
-            }
-        });
+        showFields(result);
     }
 
     public void onError(Throwable error) {}
