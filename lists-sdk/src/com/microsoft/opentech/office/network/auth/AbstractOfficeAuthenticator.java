@@ -6,14 +6,13 @@ import org.apache.http.client.methods.HttpUriRequest;
 import android.app.Activity;
 import android.text.TextUtils;
 
-import com.microsoft.opentech.office.network.BaseOperation;
-import com.microsoft.opentech.office.network.BaseOperation.OnOperaionExecutionListener;
 import com.microsoft.opentech.office.network.NetworkException;
+import com.microsoft.opentech.office.odata.async.ICallback;
 
 /**
  * Abstract implementation for credentials required to authorize to Office 365 online.
  */
-public abstract class AbstractOfficeAuthenticator implements IAuthenticator, OnOperaionExecutionListener {
+public abstract class AbstractOfficeAuthenticator implements IAuthenticator, ICallback<String> {
 
     protected abstract ISharePointCredentials getCredentials();
 
@@ -48,7 +47,7 @@ public abstract class AbstractOfficeAuthenticator implements IAuthenticator, OnO
                     try {
                         operation.execute();
                     } catch (Exception e) {
-                        onExecutionComplete(operation, false);
+                        onError(e);
                     }
                 }
             };
@@ -65,10 +64,15 @@ public abstract class AbstractOfficeAuthenticator implements IAuthenticator, OnO
         if (!TextUtils.isEmpty(mCredentials.getAccessCode())) {
             try {
                 // We got the access code, now going for our final goal - the token.
-                new AccessTokenOperation(new OnOperaionExecutionListener() {
+                new AccessTokenOperation(new ICallback<String>() {
                     @Override
-                    public void onExecutionComplete(BaseOperation operation, boolean executionResult) {
-                        mCredentials.setToken(((AccessTokenOperation) operation).getResult());
+                    public void onDone(String result) {
+                        mCredentials.setToken(result);
+                    }
+                    
+                    @Override
+                    public void onError(Throwable error) {
+                        
                     }
                 }, getActivity(), mCredentials).execute();
             } catch (Exception e) {
@@ -81,15 +85,18 @@ public abstract class AbstractOfficeAuthenticator implements IAuthenticator, OnO
     }
 
     @Override
-    public void onExecutionComplete(BaseOperation operation, boolean executionSucceeded) {
+    public void onDone(String result) {
         try {
-            if (executionSucceeded) {
-                mCredentials.setAccessCode(((AccessCodeOperation) operation).getResult());
-            }
+            mCredentials.setAccessCode(result);
             releaseUiThread();
         } catch (Exception e) {
             // TODO: log it.
         }
+    }
+    
+    @Override
+    public void onError(Throwable error) {
+        releaseUiThread();
     }
 
     private void releaseUiThread() {

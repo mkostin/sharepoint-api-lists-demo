@@ -6,26 +6,14 @@ package com.microsoft.opentech.office.network;
 import java.io.IOException;
 import java.util.UUID;
 
+import com.microsoft.opentech.office.odata.async.ICallback;
+
 /**
  * Implements abstract operation. Provides common fields for all operations.
  *
  * @param <R> Operation result.
  */
 public abstract class BaseOperation<R> {
-
-    /**
-     * Implements listener to notify operation creator when operation is completed.
-     */
-    public interface OnOperaionExecutionListener {
-
-        /**
-         * Notifies operation creator that the operation is completed.
-         *
-         * @param operation The operation.
-         * @param executionResult True if operation was executed successfully, otherwise false.
-         */
-        public void onExecutionComplete(BaseOperation operation, boolean executionResult);
-    }
 
     /**
      * Unique ID for operation.
@@ -45,14 +33,14 @@ public abstract class BaseOperation<R> {
     /**
      * Listener to get notifications when operation will be completed.
      */
-    protected OnOperaionExecutionListener mListener;
+    protected ICallback<R> mListener;
 
     /**
      * Creates new instance of the class.
      *
      * @param listener Listener to get notifications when operation will be completed.
      */
-    public BaseOperation(OnOperaionExecutionListener listener) {
+    public BaseOperation(ICallback<R> listener) {
         mListener = listener;
     }
 
@@ -68,7 +56,7 @@ public abstract class BaseOperation<R> {
      *
      * @return The listener.
      */
-    protected OnOperaionExecutionListener getListener() {
+    protected ICallback<R> getListener() {
         return mListener;
     }
 

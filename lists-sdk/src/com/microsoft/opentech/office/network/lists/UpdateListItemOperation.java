@@ -10,6 +10,7 @@ import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.odata.ODataOperation;
 import com.microsoft.opentech.office.odata.Entity;
 import com.microsoft.opentech.office.odata.IEntityBuilder;
+import com.microsoft.opentech.office.odata.async.ICallback;
 import com.msopentech.odatajclient.engine.communication.request.UpdateType;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataCUDRequestFactory;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataEntityUpdateRequest;
@@ -24,7 +25,7 @@ public class UpdateListItemOperation extends ODataOperation<ODataEntityUpdateReq
 
     private IEntityBuilder<Entity> mBuilder;
 
-    public UpdateListItemOperation(OnOperaionExecutionListener listener, Context context, String listGuid, int itemId, IEntityBuilder<Entity> builder) {
+    public UpdateListItemOperation(ICallback<Boolean> listener, Context context, String listGuid, int itemId, IEntityBuilder<Entity> builder) {
         super(listener, context);
         mListGuid = listGuid;
         mItemId = itemId;

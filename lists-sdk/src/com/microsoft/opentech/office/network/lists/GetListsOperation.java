@@ -7,6 +7,7 @@ import android.content.Context;
 
 import com.microsoft.opentech.office.network.odata.ODataOperation;
 import com.microsoft.opentech.office.odata.Entity;
+import com.microsoft.opentech.office.odata.async.ICallback;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataEntityRequest;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataRetrieveRequestFactory;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
@@ -19,7 +20,7 @@ import com.msopentech.odatajclient.engine.format.ODataPubFormat;
  */
 public class GetListsOperation extends ODataOperation<ODataEntityRequest, List<Object>, ODataPubFormat> {
 
-    public GetListsOperation(OnOperaionExecutionListener listener, Context context) {
+    public GetListsOperation(ICallback<List<Object>> listener, Context context) {
         super(listener, context);
     }
 

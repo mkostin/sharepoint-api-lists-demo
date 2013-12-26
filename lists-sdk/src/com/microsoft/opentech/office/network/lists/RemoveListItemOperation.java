@@ -7,6 +7,7 @@ import android.content.Context;
 
 import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.odata.ODataOperation;
+import com.microsoft.opentech.office.odata.async.ICallback;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataCUDRequestFactory;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataDeleteRequest;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
@@ -18,7 +19,7 @@ public class RemoveListItemOperation extends ODataOperation<ODataDeleteRequest, 
 
     private int mIndex;
 
-    public RemoveListItemOperation(OnOperaionExecutionListener listener, Context context, String guid, int index) {
+    public RemoveListItemOperation(ICallback<Boolean> listener, Context context, String guid, int index) {
         super(listener, context);
         mListGUID = guid;
         mIndex = index;

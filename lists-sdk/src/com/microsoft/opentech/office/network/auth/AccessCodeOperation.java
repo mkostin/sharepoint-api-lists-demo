@@ -2,6 +2,7 @@ package com.microsoft.opentech.office.network.auth;
 
 import java.io.IOException;
 
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -16,6 +17,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.microsoft.opentech.office.network.BaseOperation;
+import com.microsoft.opentech.office.odata.async.ICallback;
 
 /**
  * Implements standard HTTP operation using Apache HTTP components. Provides fields for all operations.
@@ -28,7 +30,7 @@ class AccessCodeOperation extends BaseOperation<String> {
 
     private Activity mActivity;
 
-    public AccessCodeOperation(OnOperaionExecutionListener listener, Activity activity, ISharePointCredentials creds) {
+    public AccessCodeOperation(ICallback<String> listener, Activity activity, ISharePointCredentials creds) {
         super(listener);
 
         mCreds = creds;
@@ -49,7 +51,7 @@ class AccessCodeOperation extends BaseOperation<String> {
 
             @Override
             public void onCancel(DialogInterface dialog) {
-                AccessCodeOperation.this.getListener().onExecutionComplete(AccessCodeOperation.this, false);
+                AccessCodeOperation.this.getListener().onError(new OperationCanceledException());
             }
         });
 
@@ -116,7 +118,7 @@ class AccessCodeOperation extends BaseOperation<String> {
 
                         // Setting result
                         AccessCodeOperation.this.mResult = code;
-                        mListener.onExecutionComplete(AccessCodeOperation.this, true);
+                        mListener.onDone(code);
                     }
 
                     super.onPageStarted(view, url, favicon);

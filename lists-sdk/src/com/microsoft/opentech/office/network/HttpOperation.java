@@ -35,6 +35,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 
+import com.microsoft.opentech.office.odata.async.ICallback;
+
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -62,7 +64,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
      *
      * @param listener Listener to get notifications when operation will be completed.
      */
-    public HttpOperation(OnOperaionExecutionListener listener) {
+    public HttpOperation(ICallback<String> listener) {
         super(listener);
     }
 
@@ -72,7 +74,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
      * @param listener Listener to get notifications when operation will be completed.
      * @param context Application context.
      */
-    public HttpOperation(OnOperaionExecutionListener listener, Context context) {
+    public HttpOperation(ICallback<String> listener, Context context) {
         super(listener, context);
     }
 
@@ -153,7 +155,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isAvailable() || !networkInfo.isConnected()) {
             this.mErrorMessage = NO_DATA_CONNECTION_MESSAGE;
-            if (mListener != null) mListener.onExecutionComplete(this, false);
+            if (mListener != null) mListener.onError(new NetworkException(this.mErrorMessage));
             return;
         }
 
@@ -171,12 +173,12 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
         executeOperation();
 
         if (this.hasError()) {
-            if (mListener != null) mListener.onExecutionComplete(this, false);
+            if (mListener != null) mListener.onError(new RuntimeException(this.getErrorMessage()));
             return;
         }
 
         boolean result = handleServerResponse(this.mResponse) && !hasError();
-        if (mListener != null) mListener.onExecutionComplete(this, result);
+        if (mListener != null) mListener.onDone(this.mResult);
     }
 
     /**

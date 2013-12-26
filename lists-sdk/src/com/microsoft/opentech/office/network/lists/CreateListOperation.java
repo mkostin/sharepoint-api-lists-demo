@@ -9,6 +9,7 @@ import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.odata.ODataOperation;
 import com.microsoft.opentech.office.odata.Entity;
 import com.microsoft.opentech.office.odata.IBuilder;
+import com.microsoft.opentech.office.odata.async.ICallback;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataCUDRequestFactory;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataEntityCreateRequest;
 import com.msopentech.odatajclient.engine.communication.response.ODataEntityCreateResponse;
@@ -19,7 +20,7 @@ public class CreateListOperation extends ODataOperation<ODataEntityCreateRequest
 
     private IBuilder<Entity> mListBuilder;
 
-    public CreateListOperation(OnOperaionExecutionListener listener, Context context, IBuilder<Entity> listBuilder) {
+    public CreateListOperation(ICallback<Entity> listener, Context context, IBuilder<Entity> listBuilder) {
         super(listener, context);
         mListBuilder = listBuilder;
     }

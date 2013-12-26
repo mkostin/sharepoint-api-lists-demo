@@ -12,6 +12,7 @@ import android.util.Pair;
 import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.HttpOperation;
 import com.microsoft.opentech.office.odata.Entity;
+import com.microsoft.opentech.office.odata.async.ICallback;
 
 public class DigestRequestOperation extends HttpOperation {
 
@@ -21,7 +22,7 @@ public class DigestRequestOperation extends HttpOperation {
 
     private static final String FORM_DIGEST_VALUE_FIELD_NAME = "FormDigestValue";
 
-    public DigestRequestOperation(OnOperaionExecutionListener listener, Context context) {
+    public DigestRequestOperation(ICallback<String> listener, Context context) {
         super(listener, context);
     }
 

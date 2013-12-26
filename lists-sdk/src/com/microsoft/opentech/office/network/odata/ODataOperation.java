@@ -15,6 +15,9 @@ import android.util.Pair;
 import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.NetworkOperation;
 import com.microsoft.opentech.office.odata.Entity;
+import com.microsoft.opentech.office.odata.async.ICallback;
+import com.microsoft.opentech.office.odata.async.OfficeFuture;
+import com.microsoft.opentech.office.odata.async.OperationAsyncTask;
 import com.msopentech.odatajclient.engine.communication.request.ODataBasicRequestImpl;
 import com.msopentech.odatajclient.engine.communication.request.ODataRequest;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
@@ -86,7 +89,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
      * @param listener Listener to be executed when operation finished.
      * @param context Application context.
      */
-    public ODataOperation(OnOperaionExecutionListener listener, Context context) {
+    public ODataOperation(ICallback<RESULT> listener, Context context) {
         super(listener, context);
     }
 
@@ -107,7 +110,6 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
      */
     @Override
     public void execute() throws UnsupportedOperationException, ClientProtocolException, IOException {
-        boolean result = false;
 
         try {
             REQUEST req = getRequest();
@@ -115,10 +117,12 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
             req.addCustomHeader(REQUEST_DIGEST_HEADER_NAME, getDigest());
 
-            result = handleServerResponse(req.execute());
-        } finally {
+            handleServerResponse(req.execute());
+            
+            mListener.onDone(mResult);
+        } catch (Exception e) {
             if (mListener != null) {
-                mListener.onExecutionComplete(this, result);
+                mListener.onError(e);
             }
         }
     }

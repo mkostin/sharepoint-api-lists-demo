@@ -15,6 +15,7 @@ import com.microsoft.opentech.office.network.HttpOperation;
 import com.microsoft.opentech.office.network.odata.DigestRequestOperation;
 import com.microsoft.opentech.office.network.odata.ODataOperation;
 import com.microsoft.opentech.office.odata.Entity;
+import com.microsoft.opentech.office.odata.async.ICallback;
 
 public class CreateFileOperation extends HttpOperation {
 
@@ -32,7 +33,7 @@ public class CreateFileOperation extends HttpOperation {
 
     private Entity mCreatedEntity;
 
-    public CreateFileOperation(OnOperaionExecutionListener listener, Context context, String libName, String fileName, byte[] data) {
+    public CreateFileOperation(ICallback<String> listener, Context context, String libName, String fileName, byte[] data) {
         super(listener, context);
         mFileName = fileName;
         mLibraryName = libName;

@@ -15,6 +15,7 @@ import android.text.TextUtils;
 import android.util.Pair;
 
 import com.microsoft.opentech.office.network.HttpOperation;
+import com.microsoft.opentech.office.odata.async.ICallback;
 
 class AccessTokenOperation extends HttpOperation {
 
@@ -24,7 +25,7 @@ class AccessTokenOperation extends HttpOperation {
 
     private ISharePointCredentials mCreds;
 
-    public AccessTokenOperation(OnOperaionExecutionListener listener, Context context, ISharePointCredentials creds) {
+    public AccessTokenOperation(ICallback<String> listener, Context context, ISharePointCredentials creds) {
         super(listener, context);
         mCreds = creds;
     }

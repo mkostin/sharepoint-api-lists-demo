@@ -14,6 +14,10 @@ import org.apache.http.client.methods.HttpUriRequest;
 import android.content.Context;
 import android.util.Pair;
 
+import com.microsoft.opentech.office.odata.async.ICallback;
+import com.microsoft.opentech.office.odata.async.OfficeFuture;
+import com.microsoft.opentech.office.odata.async.OperationAsyncTask;
+
 /**
  * Implements standard HTTP operation. Has common fields for all operations.
  *
@@ -54,7 +58,7 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      *
      * @param listener Listener to get notifications when operation will be completed.
      */
-    public NetworkOperation(OnOperaionExecutionListener listener) {
+    public NetworkOperation(ICallback<RESULT> listener) {
         super(listener);
     }
 
@@ -64,7 +68,7 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      * @param listener Listener to get notifications when operation will be completed.
      * @param context Application context.
      */
-    public NetworkOperation(OnOperaionExecutionListener listener, Context context) {
+    public NetworkOperation(ICallback<RESULT> listener, Context context) {
         super(listener);
         this.mContext = context;
     }
@@ -89,7 +93,14 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      */
     @Override
     public abstract void execute() throws RuntimeException, IOException;
-
+    
+    public OfficeFuture<RESULT> executeAsync() {
+        OfficeFuture<RESULT> future = new OfficeFuture<RESULT>();
+        OperationAsyncTask<RESULT> task = new OperationAsyncTask<RESULT>(future);
+        task.execute(this);
+        return future;
+    }
+    
     /**
      * Retrieves response.
      *

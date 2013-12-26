@@ -8,6 +8,7 @@ import android.content.Context;
 
 import com.microsoft.opentech.office.network.odata.ODataOperation;
 import com.microsoft.opentech.office.odata.Entity;
+import com.microsoft.opentech.office.odata.async.ICallback;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataEntityRequest;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataRetrieveRequestFactory;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
@@ -19,7 +20,7 @@ public class GetListItemsOperation extends ODataOperation<ODataEntityRequest, Li
 
     private String mGUID;
 
-    public GetListItemsOperation(OnOperaionExecutionListener listener, Context context, String guid) {
+    public GetListItemsOperation(ICallback<List<Object>> listener, Context context, String guid) {
         super(listener, context);
         this.mGUID = guid;
     }
