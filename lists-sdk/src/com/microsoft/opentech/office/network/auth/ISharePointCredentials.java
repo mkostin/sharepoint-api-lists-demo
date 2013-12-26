@@ -17,9 +17,13 @@ public interface ISharePointCredentials {
 
     abstract String getAccessCode();
 
-    abstract void setAccessCode(String accessCode);
+    abstract ISharePointCredentials setAccessCode(String accessCode);
+
+    public String getRefreshToken();
+
+    public ISharePointCredentials setRefreshToken(String token);
 
     abstract String getToken();
 
-    abstract void setToken(String token);
+    abstract ISharePointCredentials setToken(String token);
 }

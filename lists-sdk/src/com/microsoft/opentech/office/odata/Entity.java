@@ -1,124 +1,202 @@
 package com.microsoft.opentech.office.odata;
 
+import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import android.text.TextUtils;
+import android.util.Pair;
 
 import com.msopentech.odatajclient.engine.data.ODataComplexValue;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
-import com.msopentech.odatajclient.engine.data.ODataFactory;
 import com.msopentech.odatajclient.engine.data.ODataProperty;
+import com.msopentech.odatajclient.engine.data.ODataReader;
 import com.msopentech.odatajclient.engine.data.ODataValue;
+import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 
-/**
- * Wraps ODataEntity class.
- */
 public class Entity implements Serializable {
 
-    /**
-     * Generated serial version uid.
-     */
-    private static final long serialVersionUID = -8889179594394726368L;
+    private static final long serialVersionUID = 1708624818507606418L;
 
-    /**
-     * Wrapped value.
-     */
-    private final ODataEntity mEntity;
+    private static final String METADATA_KEY = "__metadata";
 
-    /**
-     * Creates new Entity with given type.
-     *
-     * @param typeName Type name.
-     */
-    Entity(String typeName) {
-        mEntity = ODataFactory.newEntity("");
+    private static final String TYPE_KEY = "type";
+
+    private static final String SHAREPOINT_ROOT_OBJECT_KEY = "d";
+
+    private final TreeMap<String, Object> mFields;
+
+    private final TreeMap<String, Object> mMetadata;
+
+    private Entity() {
+        mFields = new TreeMap<String, Object>();
+        mMetadata = new TreeMap<String, Object>();
     }
 
-    /**
-     * Creates new Entity from ODataEntity passed from server.
-     *
-     * @param odataEntity Received entity.
-     */
-    Entity(ODataEntity odataEntity) {
-        ODataComplexValue properties = odataEntity.getProperty("d").getComplexValue();
-        ODataComplexValue metadata = properties.get("__metadata").getComplexValue();
-        String type = metadata.get("type").getPrimitiveValue().toString();
+    public Object get(String name) throws IllegalArgumentException {
+        if (mFields.containsKey(name)) {
+            return mFields.get(name);
+        } else {
+            throw new IllegalArgumentException("Key \"" + name + "\" not found in current Entity instance");
+        }
+    }
 
-        mEntity = ODataFactory.newEntity(type);
-        mEntity.addProperty(ODataFactory.newComplexProperty("__metadata", metadata));
+    public Object getMeta(String name) throws IllegalArgumentException {
+        if (mMetadata.containsKey(name)) {
+            return mMetadata.get(name);
+        } else {
+            throw new IllegalArgumentException("Key \"" + name + "\" not found in metadata of current Entity instance");
+        }
+    }
 
-        for (ODataProperty property: properties) {
-            if ("__metadata".equals(property.getName())) {
-              continue;
+    public Iterator<Pair<String, Object>> iterator() {
+        return new Iterator<Pair<String, Object>>() {
+
+            private Iterator<String> keysIterator = mFields.keySet().iterator();
+
+            public boolean hasNext() {
+                return keysIterator.hasNext();
             }
 
-            EntityBuilder.set(mEntity, property.getName(), property.getValue());
-        }
+            public Pair<String, Object> next() {
+                String key = keysIterator.next();
+                return new Pair<String, Object>(key, mFields.get(key));
+            }
+
+            public void remove() {
+                throw new UnsupportedOperationException("Cannot remove from Entity");
+            }
+        };
     }
 
-    // TODO: hide this from end user
-    public ODataEntity asODataEntity() {
-        return mEntity;
+    /**
+     * Creates a builder from json string.
+     * 
+     * @param json JSON string to create builder from.
+     * @return Builder for Entity.
+     * @throws Exception Thrown when an error occurred during json parsing or Entity building.
+     */
+    public static Builder from(Object json) throws IllegalArgumentException {
+        ODataEntity odataEntity;
+        if (json instanceof String) {
+            try {
+                odataEntity = ODataReader.readEntity(new ByteArrayInputStream(((String)json).getBytes()), ODataPubFormat.JSON_VERBOSE_METADATA);
+            } catch (Exception e) {
+                throw new IllegalArgumentException(e);
+            }
+        } else if (json instanceof ODataEntity) {
+            odataEntity = (ODataEntity) json;
+        } else {
+            throw new IllegalArgumentException("Entity.Builder.from(): you must pass a string containing correct JSON to this method");
+        }
+
+        ODataComplexValue properties;
+        // if this json retrieved from sharepoint, all payload is located in "d" object
+        if (odataEntity.getProperties().size() == 1 && odataEntity.getProperties().get(0).getName().equals(SHAREPOINT_ROOT_OBJECT_KEY)) {
+            properties = odataEntity.getProperty(SHAREPOINT_ROOT_OBJECT_KEY).getComplexValue();
+        } else {
+            throw new UnsupportedOperationException("Parsing of non-sharepoint json is not implemented yet");
+        }
+
+        Builder builder = new Builder();
+        for (ODataProperty property : properties) {
+            if (METADATA_KEY.equals(property.getName())) {
+                for (ODataProperty meta : property.getComplexValue()) {
+                    builder.setMeta(meta.getName(), fromODataObject(meta.getValue()));
+                }
+            } else {
+                builder.set(property.getName(), fromODataObject(property.getValue()));
+            }
+        }
+
+        return builder;
     }
 
-    public Object getMeta(String name) throws IllegalArgumentException, RuntimeException {
-        ODataComplexValue metadata = mEntity.getProperty("__metadata").getComplexValue();
-        
-        if (metadata == null) {
-            throw new RuntimeException("No metadata found");
-        }
-        
-        if (metadata.get(name) == null) {
-            throw new IllegalArgumentException("Field \"" + name + "\" not found in metadata");
-        }
-
-        ODataProperty property = metadata.get(name);
-        if (property.hasNullValue()) {
+    private static Object fromODataObject(ODataValue value) {
+        if (value == null) {
             return null;
         }
 
-        if (property.hasPrimitiveValue()) {
-            return property.getValue().asPrimitive().toValue();
+        if (value.isPrimitive()) {
+            return value.asPrimitive().toValue();
         }
 
-        if (property.hasCollectionValue()) {
-            ArrayList<Object> collection = new ArrayList<Object>();
-            Iterator<ODataValue> iterator = property.getCollectionValue().iterator();
+        if (value.isCollection()) {
+            List<Object> collection = new ArrayList<Object>();
+            Iterator<ODataValue> iterator = value.asCollection().iterator();
             while (iterator.hasNext()) {
-                ODataValue next = iterator.next();
-                collection.add(next);
+                collection.add(fromODataObject(iterator.next()));
             }
 
             return collection;
         }
 
-        ComplexValue complex = new ComplexValue();
-        Iterator<ODataProperty> iterator = property.getComplexValue().iterator();
+        Builder builder = new Builder();
+        Iterator<ODataProperty> iterator = value.asComplex().iterator();
         while (iterator.hasNext()) {
-            ODataProperty next = iterator.next();
-            complex.set(next.getName(), next.getValue());
+            ODataProperty property = iterator.next();
+            builder.set(property.getName(), fromODataObject(property.getValue()));
         }
 
-        return complex;
+        return builder.build();
     }
 
-    public Entity set(String name, Object value) throws IllegalArgumentException {
-        ODataValue odataValue = ComplexValue.getODataObject(value);
-        if (mEntity.getProperty(name) != null) {
-            mEntity.removeProperty(mEntity.getProperty(name));
+    private static void checkName(String name) throws IllegalArgumentException {
+        if (TextUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("ComplexValue.checkName(): Name cannot be empty or null");
         }
-        if (odataValue == null || odataValue.isPrimitive()) {
-            mEntity.addProperty(ODataFactory.newPrimitiveProperty(name, odataValue.asPrimitive()));
-        } else if (odataValue.isCollection()) {
-            mEntity.addProperty(ODataFactory.newCollectionProperty(name, odataValue.asCollection()));
-        } else {
-            mEntity.addProperty(ODataFactory.newComplexProperty(name, odataValue.asComplex()));
-        }
-
-        return this;
     }
 
-    public Object get(String name){
-        return ComplexValue.fromODataObject(mEntity.getProperty(name).getValue());
+    public static class Builder implements IEntityBuilder<Entity> {
+
+        private Entity mCurrent;
+
+        private String mTypeName;
+
+        public Builder(String typeName) {
+            mCurrent = new Entity();
+            mTypeName = typeName;
+        }
+
+        public Builder() {
+            this(null);
+        }
+
+        public Builder set(String name, Object value) throws IllegalArgumentException {
+            checkName(name);
+            mCurrent.mFields.put(name, value);
+            return this;
+        }
+
+        public Builder setMeta(String name, Object value) throws IllegalArgumentException {
+            checkName(name);
+            mCurrent.mMetadata.put(name, value);
+            return this;
+        }
+
+        public Entity build() throws IllegalStateException {
+            // try to set type
+            // if type already contained in map, it has higher priority
+            if (!mCurrent.mMetadata.containsKey(TYPE_KEY) && !TextUtils.isEmpty(mTypeName)) {
+                setMeta(TYPE_KEY, mTypeName);
+            }
+            if (mCurrent.mMetadata.size() > 0) {
+                set(METADATA_KEY, convertMetadata(mCurrent.mMetadata));
+            }
+            return mCurrent;
+        }
+        
+        private Entity convertMetadata(TreeMap<String, Object> metadata) {
+            Builder builder = new Builder();
+            for (Map.Entry<String, Object> field: metadata.entrySet()) {
+                builder.set(field.getKey(), field.getValue());
+            }
+            
+            return builder.build();
+        }
     }
 }

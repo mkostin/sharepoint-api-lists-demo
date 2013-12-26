@@ -5,14 +5,13 @@ import java.util.List;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.content.Context;
 import android.util.Pair;
 
 import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.HttpOperation;
+import com.microsoft.opentech.office.odata.Entity;
 
 public class DigestRequestOperation extends HttpOperation {
 
@@ -33,14 +32,9 @@ public class DigestRequestOperation extends HttpOperation {
 
     @Override
     protected boolean handleServerResponse(String response) throws RuntimeException {
-        try {
-            JSONObject json = new JSONObject(response);
-            this.mResult = json.getJSONObject(ODataOperation.SHAREPOINT_ROOT_OBJECT_NAME).getJSONObject(CONTEXT_WEB_INFORMATION_FIELD_NAME)
-                    .getString(FORM_DIGEST_VALUE_FIELD_NAME);
-            return true;
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        Entity entity = Entity.from(response).build();
+        this.mResult = ((Entity)entity.get(CONTEXT_WEB_INFORMATION_FIELD_NAME)).get(FORM_DIGEST_VALUE_FIELD_NAME).toString();
+        return true;
     }
 
     @Override

@@ -2,8 +2,10 @@ package com.microsoft.opentech.office.network.odata;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.apache.http.client.ClientProtocolException;
 
@@ -12,13 +14,18 @@ import android.util.Pair;
 
 import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.NetworkOperation;
+import com.microsoft.opentech.office.odata.Entity;
 import com.msopentech.odatajclient.engine.communication.request.ODataBasicRequestImpl;
 import com.msopentech.odatajclient.engine.communication.request.ODataRequest;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
+import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
 import com.msopentech.odatajclient.engine.data.ODataComplexValue;
+import com.msopentech.odatajclient.engine.data.ODataEntity;
 import com.msopentech.odatajclient.engine.data.ODataFactory;
 import com.msopentech.odatajclient.engine.data.ODataPrimitiveValue;
+import com.msopentech.odatajclient.engine.data.ODataProperty;
 import com.msopentech.odatajclient.engine.data.ODataValue;
+import com.msopentech.odatajclient.engine.data.metadata.edm.EdmSimpleType;
 import com.msopentech.odatajclient.engine.format.ODataFormat;
 import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 import com.msopentech.odatajclient.engine.format.ODataValueFormat;
@@ -211,5 +218,79 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
         }
 
         return metadata;
+    }
+
+    protected static final ODataEntity getODataEntity(Entity entity) throws IllegalArgumentException {
+        ODataEntity odataEntity = ODataFactory.newEntity("");
+        Iterator<Pair<String, Object>> iterator = entity.iterator();
+        while (iterator.hasNext()) {
+            Pair<String, Object> pair = iterator.next();
+            odataEntity.addProperty(getODataProperty(pair));
+        }
+        
+        return odataEntity;
+    }
+
+    private static ODataValue toODataObject(Object value) throws IllegalArgumentException {
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof ODataValue) {
+            return (ODataValue) value;
+        }
+
+        if (value instanceof Entity) {
+            ODataComplexValue complex = new ODataComplexValue("");
+            Iterator<Pair<String, Object>> iterator = ((Entity)value).iterator();
+            while (iterator.hasNext()) {
+                Pair<String, Object> field = iterator.next();
+                complex.add(getODataProperty(field));
+            }
+
+            return complex;
+        }
+
+        if (value instanceof List || value instanceof Object[] || value instanceof Vector) {
+            ODataCollectionValue collection = new ODataCollectionValue("");
+            if (value instanceof List) {
+                for (Object item: (List<?>) value) {
+                    collection.add(toODataObject(item));
+                }
+            } else if (value instanceof Vector) {
+                for (Object item: (Vector<?>) value) {
+                    collection.add(toODataObject(item));
+                }
+            } else {
+                for (Object item: (Object[])value) {
+                    collection.add(toODataObject(item));
+                }
+            }
+
+            return collection;
+        }
+
+        try {
+            return new ODataPrimitiveValue.Builder().setValue(value).setType(EdmSimpleType.fromObject(value)).build();
+        } catch (IllegalArgumentException e) {
+            return (ODataComplexValue)value;
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("Cannot cast this object to OData type");
+        }
+    }
+    
+    private static ODataProperty getODataProperty(Pair<String, Object> field) {
+        ODataValue value = toODataObject(field.second);
+        if (value == null) {
+            return ODataFactory.newPrimitiveProperty(field.first, null);
+        }
+        if (value.isPrimitive()) {
+            return ODataFactory.newPrimitiveProperty(field.first, value.asPrimitive());
+        }
+        if (value.isCollection()) {
+            return ODataFactory.newCollectionProperty(field.first, value.asCollection());
+        }
+        
+        return ODataFactory.newComplexProperty(field.first, value.asComplex());
     }
 }

@@ -32,7 +32,7 @@ public abstract class AbstractOfficeAuthenticator implements IAuthenticator, OnO
     }
 
     @Override
-    public void prepareClient(final HttpClient client) {
+    public void prepareClient(final HttpClient client) throws NetworkException {
         // We do have credentials, simply pass this step. Token will be set later in prepareRequest().
         if (mCredentials != null && !TextUtils.isEmpty(mCredentials.getAccessCode()) && !TextUtils.isEmpty(mCredentials.getToken())) {
             return;
@@ -57,21 +57,30 @@ public abstract class AbstractOfficeAuthenticator implements IAuthenticator, OnO
                 getActivity().runOnUiThread(mUiRunnable);
                 mUiRunnable.wait();
             }
-
-            // We got the access code, now going for our final goal - the token.
-            new AccessTokenOperation(new OnOperaionExecutionListener() {
-                @Override
-                public void onExecutionComplete(BaseOperation operation, boolean executionResult) {
-                    mCredentials.setToken(((AccessTokenOperation) operation).getResult());
-                }
-            }, getActivity(), mCredentials).execute();
         } catch (Exception e) {
-            throw new NetworkException("Error while preparing and adding authentication cookies to a request.", e);
+            // TODO: Log it
+            throw new NetworkException("Authentication: Error executing access code retrieval." + e.getMessage(), e);
+        }
+
+        if (!TextUtils.isEmpty(mCredentials.getAccessCode())) {
+            try {
+                // We got the access code, now going for our final goal - the token.
+                new AccessTokenOperation(new OnOperaionExecutionListener() {
+                    @Override
+                    public void onExecutionComplete(BaseOperation operation, boolean executionResult) {
+                        mCredentials.setToken(((AccessTokenOperation) operation).getResult());
+                    }
+                }, getActivity(), mCredentials).execute();
+            } catch (Exception e) {
+                // TODO: Log it
+                throw new NetworkException("Authentication: Error executing access token retrieval." + e.getMessage(), e);
+            }
+        } else {
+            throw new NetworkException("Authentication: Access code retrieval failed.");
         }
     }
 
     @Override
-    // TODO: populate throwing exception
     public void onExecutionComplete(BaseOperation operation, boolean executionSucceeded) {
         try {
             if (executionSucceeded) {
@@ -79,7 +88,7 @@ public abstract class AbstractOfficeAuthenticator implements IAuthenticator, OnO
             }
             releaseUiThread();
         } catch (Exception e) {
-            // TODO: throw agregated exception here.
+            // TODO: log it.
         }
     }
 

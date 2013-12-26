@@ -1,19 +1,21 @@
 package com.microsoft.opentech.office.network.lists;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 
 import com.microsoft.opentech.office.network.odata.ODataOperation;
+import com.microsoft.opentech.office.odata.Entity;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataEntityRequest;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataRetrieveRequestFactory;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
 import com.msopentech.odatajclient.engine.communication.response.ODataRetrieveResponse;
-import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
 import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 
-public class GetListItemsOperation extends ODataOperation<ODataEntityRequest, ODataCollectionValue, ODataPubFormat> {
+public class GetListItemsOperation extends ODataOperation<ODataEntityRequest, List<Object>, ODataPubFormat> {
 
     private String mGUID;
 
@@ -29,10 +31,10 @@ public class GetListItemsOperation extends ODataOperation<ODataEntityRequest, OD
 
     @Override
     protected boolean handleServerResponse(ODataResponse response) {
-        ODataEntity res = ((ODataRetrieveResponse<ODataEntity>) response).getBody();
-        mResult = res.getProperty(SHAREPOINT_ROOT_OBJECT_NAME).getComplexValue().get(SHAREPOINT_RESULTS_FIELD_NAME).getCollectionValue();
+        Entity entity = Entity.from(((ODataRetrieveResponse<ODataEntity>) response).getBody()).build();
+        mResult = (List<Object>) entity.get(SHAREPOINT_RESULTS_FIELD_NAME);
         if (mResult == null) {
-            mResult = new ODataCollectionValue(null); // handle an empty list situation
+            mResult = new ArrayList<Object>();
         }
         return true;
     }

@@ -18,6 +18,7 @@ public final class Configuration {
     /**
      * Currently used authentication method.
      */
+    @Deprecated
     private static IAuthenticator sAuthenticationCredentials = null;
 
     /**
@@ -71,6 +72,7 @@ public final class Configuration {
      *
      * @param factory New authentication credentials.
      */
+    @Deprecated
     public static void setCredentials(ISharePointCredentials creds) {
         sCredentials = creds;
     }
@@ -80,6 +82,7 @@ public final class Configuration {
      *
      * @return Current authentication credentials.
      */
+    @Deprecated
     public static ISharePointCredentials getCredentials() {
         return sCredentials;
     }

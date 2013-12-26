@@ -8,21 +8,21 @@ import android.content.Context;
 
 import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.odata.ODataOperation;
-import com.microsoft.opentech.office.odata.EntityBuilder;
+import com.microsoft.opentech.office.odata.Entity;
+import com.microsoft.opentech.office.odata.IEntityBuilder;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataCUDRequestFactory;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataEntityCreateRequest;
 import com.msopentech.odatajclient.engine.communication.response.ODataEntityCreateResponse;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
-import com.msopentech.odatajclient.engine.data.ODataEntity;
 import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 
-public class CreateListItemOperation extends ODataOperation<ODataEntityCreateRequest, ODataEntity, ODataPubFormat> {
+public class CreateListItemOperation extends ODataOperation<ODataEntityCreateRequest, Entity, ODataPubFormat> {
 
     private String listGUID;
 
-    private EntityBuilder mBuilder;
+    private IEntityBuilder<Entity> mBuilder;
 
-    public CreateListItemOperation(OnOperaionExecutionListener listener, Context context, String listId, EntityBuilder entityBuilder) {
+    public CreateListItemOperation(OnOperaionExecutionListener listener, Context context, String listId, IEntityBuilder<Entity> entityBuilder) {
         super(listener, context);
         listGUID = listId;
         mBuilder = entityBuilder;
@@ -36,19 +36,17 @@ public class CreateListItemOperation extends ODataOperation<ODataEntityCreateReq
         } catch (IOException e) {
             throw new UnsupportedOperationException(e);
         }
-        ODataEntity list = getListOper.getResult();
-        mBuilder.setMeta(SHAREPOINT_TYPE_FIELD_NAME,
-                list.getProperty(SHAREPOINT_ROOT_OBJECT_NAME).getComplexValue().get(SHAREPOINT_LIST_ITEM_ENTITY_TYPE_FULL_NAME_FIELD_NAME)
-                        .getPrimitiveValue().toString());
+        Entity list = getListOper.getResult();
+        mBuilder.setMeta(SHAREPOINT_TYPE_FIELD_NAME, list.get(SHAREPOINT_LIST_ITEM_ENTITY_TYPE_FULL_NAME_FIELD_NAME).toString());
 
-        ODataEntityCreateRequest request = ODataCUDRequestFactory.getEntityCreateRequest(getServerUrl(), mBuilder.build().asODataEntity());
+        ODataEntityCreateRequest request = ODataCUDRequestFactory.getEntityCreateRequest(getServerUrl(), getODataEntity(mBuilder.build()));
 
         return request;
     }
 
     @Override
     protected boolean handleServerResponse(ODataResponse res) {
-        mResult = ((ODataEntityCreateResponse) res).getBody();
+        mResult = Entity.from(((ODataEntityCreateResponse) res).getBody()).build();
         return true;
     }
 

@@ -1,6 +1,5 @@
 package com.microsoft.opentech.office.network.files;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -16,16 +15,13 @@ import com.microsoft.opentech.office.network.HttpOperation;
 import com.microsoft.opentech.office.network.odata.DigestRequestOperation;
 import com.microsoft.opentech.office.network.odata.ODataOperation;
 import com.microsoft.opentech.office.odata.Entity;
-import com.microsoft.opentech.office.odata.EntityBuilder;
-import com.msopentech.odatajclient.engine.data.ODataReader;
-import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 
 public class CreateFileOperation extends HttpOperation {
 
     private static String CREATE_FILE_TEMPLATE_URL = "web/GetFolderByServerRelativeUrl('%s')/Files/add(url='%s',overwrite=true)";
 
     private static final String REQUEST_DIGEST_HEADER_NAME = "X-RequestDigest";
-    
+
     private static final String SHAREPOINT_METADATA_URI_FIELD_NAME = "uri";
 
     private String mFileName;
@@ -42,7 +38,7 @@ public class CreateFileOperation extends HttpOperation {
         mLibraryName = libName;
         mData = data;
     }
-    
+
     public Entity getCreatedEntity() {
         return mCreatedEntity;
     }
@@ -57,11 +53,12 @@ public class CreateFileOperation extends HttpOperation {
     @Override
     protected boolean handleServerResponse(String response) throws RuntimeException {
         try {
-            mCreatedEntity = EntityBuilder.fromODataEntity(
-                    ODataReader.readEntity(new ByteArrayInputStream(response.getBytes()), ODataPubFormat.JSON_VERBOSE_METADATA)).build();
+
+            mCreatedEntity = Entity.from(response).build();
             // get relative url
             String uri = (String) mCreatedEntity.getMeta(SHAREPOINT_METADATA_URI_FIELD_NAME);
-            // uri looks like https://example.com/.../_api/Web/GetFileByServerRelativeUrl('/teams/MSOpenTech-CLA/testsite/Shared%20Documents/image.jpg')
+            // uri looks like
+            // https://example.com/.../_api/Web/GetFileByServerRelativeUrl('/teams/MSOpenTech-CLA/testsite/Shared%20Documents/image.jpg')
             // extract part in parentheses
             final String getCommand = "GetFileByServerRelativeUrl";
             String relativeUri = uri.substring(uri.indexOf(getCommand) + getCommand.length() + 2);
@@ -73,7 +70,7 @@ public class CreateFileOperation extends HttpOperation {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        
+
     }
 
     @Override
