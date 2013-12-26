@@ -6,8 +6,11 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import android.os.Handler;
+import android.os.Looper;
+
 /**
- * Represents long running SignalR operations
+ * Implementation of a <i>listenable</i> {@link Future}.
  */
 public class OfficeFuture<V> implements Future<V> {
 	boolean mIsCancelled = false;
@@ -17,9 +20,11 @@ public class OfficeFuture<V> implements Future<V> {
 	private Object mErrorLock = new Object();
 	private Throwable mError = null;
 	private ICallback<V> mCallback;
-	
+
 	private Semaphore mResultSemaphore = new Semaphore(0);
-	
+
+	private Handler handler = new Handler(Looper.getMainLooper());
+
 	/**
 	 * Cancels the operation
 	 */
@@ -27,7 +32,7 @@ public class OfficeFuture<V> implements Future<V> {
 		mIsCancelled = true;
 		mResultSemaphore.release();
 	}
-	
+
 	/**
 	 * Sets a result to the future and finishes its execution
 	 * @param result The future result
@@ -37,13 +42,13 @@ public class OfficeFuture<V> implements Future<V> {
 			mResult = result;
 			mIsDone = true;
 			if (mCallback != null) {
-                mCallback.onDone(result);
+                invokeDone(result);
 			}
 		}
-		
+
 		mResultSemaphore.release();
 	}
-	
+
 	/**
 	 * Indicates if the operation is cancelled
 	 * @return True if the operation is cancelled
@@ -79,36 +84,65 @@ public class OfficeFuture<V> implements Future<V> {
 			throw new TimeoutException();
 		}
 	}
-	
+
 	@Override
 	public boolean isDone() {
 		return mIsDone;
 	}
-	
+
 	public OfficeFuture<V> setCallback(ICallback<V> callback) {
         synchronized (mDoneLock) {
             mCallback = callback;
-            
+
             if (isDone()) {
                 try {
-                    callback.onDone(get());
+                    V result = get();
+                    invokeDone(result);
                 } catch (Exception e) {
                     triggerError(e);
                 }
             }
         }
-        
+
         return this;
     }
-	
+
 	public void triggerError(Throwable error) {
 	    synchronized (mErrorLock) {
             if (mCallback != null) {
-                mCallback.onError(error);
+                invokeError(error);
             }
-            
+
             mError = error;
             mResultSemaphore.release();
         }
 	}
+
+	/**
+	 * Invokes {@link ICallback#onDone(Object)} callback on a UI thread.
+	 *
+	 * @param result Execution result.
+	 */
+    protected void invokeDone(final V result) {
+        handler.post(new Runnable(){
+            @Override
+             public void run() {
+                mCallback.onDone(result);
+             }
+        });
+    }
+
+    /**
+     * Invokes {@link ICallback#onError(Throwable)} callback on a UI thread.
+     *
+     * @param error Execution error.
+     */
+    protected void invokeError(final Throwable error) {
+        handler.post(new Runnable(){
+           @Override
+            public void run() {
+               mCallback.onError(error);
+            }
+        });
+    }
 }
