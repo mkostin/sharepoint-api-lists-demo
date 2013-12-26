@@ -39,19 +39,4 @@ public class Constants {
      * NTLM authentication required cookie.
      */
     public static final String COOKIE_RT_FA = "rtFa=btHSSMLPPaqSjpN1ZN8U91B/V2iaHSc3ubUJtmn8E00D2zONyhkloc9dyL0wIPDbn+OkAsENZfTSseRlQ5eRfV2c53qjNPrHOOf9v63fOcLYYRgAcutqGjhPG3OzBqWI4vFbhT/CmR2bGSEPEuo79oDQRJzwLPgE7Zfiyla0tyYp3riPudFeDYwdedWvlsUsU9wCnR2UQsOPgr/jhDta/qxuJ+0uDdIln+DyX58GSrckMPpi97qkmTvuYAGhtt3CxCZFEXBb5bfIeCMNDh3iTq8xHT54UMZfw4Ea8Ohm29PDAe9ywinLpoLj+6oWYLNkQ6UEGRDTLsdSBTNaky6Q8nMlwgx30SjhX8JH8/unQIvjge/KLPypMVxEDom4CUe9IAAAAA==";
-
-    /**
-     * User name for authentication (whatever type is used).
-     * Valid formats: <br/>
-     * - domain\\username <br/>
-     * - username@domain.com
-     */
-    public static final String USERNAME = "username@domain";
-
-    /**
-     * Password for authentication (whatever type is used).
-     */
-    public static final String PASSWORD = "your-pass";
-
-
 }

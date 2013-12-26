@@ -29,8 +29,7 @@
             android:layout_toRightOf="@+id/main_login_dialog_password_label"
             android:ems="10"
             android:imeOptions="actionDone"
-            android:inputType="textPassword"
-            android:text="@string/main_item_image_url_default" />
+            android:inputType="textPassword" />
 
         <EditText
             android:id="@+id/main_login_dialog_login"
