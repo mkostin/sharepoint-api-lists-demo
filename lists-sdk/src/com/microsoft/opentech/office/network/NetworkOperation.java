@@ -42,6 +42,8 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
     protected static final String NTLM_HTTP_AUTHENTICATION_SCHEME_NAME = "ntlm";
 
     protected static final String LOCALHOST_DOMAIN_VALUE = "localhost";
+    
+    protected CallbackWrapper mCallbackWrapper;
 
     /**
      * Application context.
@@ -59,7 +61,7 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      * @param listener Listener to get notifications when operation will be completed.
      */
     public NetworkOperation(ICallback<RESULT> listener) {
-        super(listener);
+        this(listener, null);
     }
 
     /**
@@ -71,6 +73,7 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
     public NetworkOperation(ICallback<RESULT> listener, Context context) {
         super(listener);
         this.mContext = context;
+        mCallbackWrapper = new CallbackWrapper(false);
     }
 
     /**
@@ -92,12 +95,19 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      * {@inheritDoc}
      */
     @Override
-    public abstract void execute() throws RuntimeException, IOException;
+    public abstract RESULT execute() throws RuntimeException, IOException;
     
+    /**
+     * Executes operation asynchronously.
+     * 
+     * @return Future with given operation.
+     */
+    @SuppressWarnings("unchecked")
     public OfficeFuture<RESULT> executeAsync() {
-        OfficeFuture<RESULT> future = new OfficeFuture<RESULT>();
+        OfficeFuture<RESULT> future = new OfficeFuture<RESULT>(getListener());
         OperationAsyncTask<RESULT> task = new OperationAsyncTask<RESULT>(future);
         task.execute(this);
+        mCallbackWrapper.setAsyncMode(true);
         return future;
     }
     
@@ -131,4 +141,36 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      * @throws RuntimeException when error occurred during response handling.
      */
     protected abstract boolean handleServerResponse(RESPONSE response) throws IOException;
+    
+    /**
+     * Wraps callback to avoid checking if current operation is running sync/async.
+     * This class is not static since it makes sense only in operation context.
+     */
+    protected class CallbackWrapper {
+        
+        private boolean mIsAsync;
+        
+        private ICallback<RESULT> mCallback;
+        
+        public CallbackWrapper(boolean isAsync) {
+            this.mCallback = NetworkOperation.this.getListener();
+            this.mIsAsync = isAsync;
+        }
+        
+        public void onDone(RESULT result) {
+            if (!mIsAsync && mCallback != null) {
+                mCallback.onDone(result);
+            }
+        }
+        
+        public void onError(Throwable error) {
+            if (!mIsAsync && mCallback != null) {
+                mCallback.onError(error);
+            }
+        }
+        
+        public void setAsyncMode(boolean isAsync) {
+            mIsAsync = isAsync;
+        }
+    }
 }

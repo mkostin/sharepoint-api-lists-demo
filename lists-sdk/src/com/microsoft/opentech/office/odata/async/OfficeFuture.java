@@ -24,6 +24,15 @@ public class OfficeFuture<V> implements Future<V> {
 	private Semaphore mResultSemaphore = new Semaphore(0);
 
 	private Handler handler = new Handler(Looper.getMainLooper());
+	
+	/**
+	 * Creates a new instance of OfficeFuture class.
+	 * 
+	 * @param callback Callback to be invoked when future ends.
+	 */
+	public OfficeFuture(ICallback<V> callback) {
+	    mCallback = callback;
+	}
 
 	/**
 	 * Cancels the operation
@@ -37,7 +46,7 @@ public class OfficeFuture<V> implements Future<V> {
 	 * Sets a result to the future and finishes its execution
 	 * @param result The future result
 	 */
-	public void setResult(V result) {
+	void setResult(V result) {
 		synchronized (mDoneLock) {
 			mResult = result;
 			mIsDone = true;
@@ -90,24 +99,7 @@ public class OfficeFuture<V> implements Future<V> {
 		return mIsDone;
 	}
 
-	public OfficeFuture<V> setCallback(ICallback<V> callback) {
-        synchronized (mDoneLock) {
-            mCallback = callback;
-
-            if (isDone()) {
-                try {
-                    V result = get();
-                    invokeDone(result);
-                } catch (Exception e) {
-                    triggerError(e);
-                }
-            }
-        }
-
-        return this;
-    }
-
-	public void triggerError(Throwable error) {
+	void triggerError(Throwable error) {
 	    synchronized (mErrorLock) {
             if (mCallback != null) {
                 invokeError(error);

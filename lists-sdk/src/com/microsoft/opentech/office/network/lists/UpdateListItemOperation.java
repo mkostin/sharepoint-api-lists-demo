@@ -26,7 +26,7 @@ public class UpdateListItemOperation extends ODataOperation<ODataEntityUpdateReq
     private IEntityBuilder<Entity> mBuilder;
 
     public UpdateListItemOperation(ICallback<Boolean> listener, Context context, String listGuid, int itemId, IEntityBuilder<Entity> builder) {
-        super(listener, context);
+        super(listener, context, true);
         mListGuid = listGuid;
         mItemId = itemId;
         mBuilder = builder;

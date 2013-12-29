@@ -18,7 +18,7 @@ public class RemoveListOperation extends ODataOperation<ODataDeleteRequest, Bool
     private String mGuid;
 
     public RemoveListOperation(ICallback<Boolean> listener, Context context, String guid) {
-        super(listener, context);
+        super(listener, context, true);
         mGuid = guid;
     }
 

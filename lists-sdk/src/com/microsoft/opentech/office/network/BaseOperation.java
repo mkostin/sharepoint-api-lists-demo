@@ -49,7 +49,7 @@ public abstract class BaseOperation<R> {
      * @throws IOException when an I/O error occurred during operation execution.
      * @throws RuntimeException when runtime error occurred during operation execution.
      */
-    public abstract void execute() throws RuntimeException, IOException;
+    public abstract R execute() throws RuntimeException, IOException;
 
     /**
      * Retrieves listener.

@@ -61,7 +61,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
 
     /**
      * Creates new instance of the class.
-     *
+     * 
      * @param listener Listener to get notifications when operation will be completed.
      */
     public HttpOperation(ICallback<String> listener) {
@@ -70,7 +70,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
 
     /**
      * Creates new instance of the class.
-     *
+     * 
      * @param listener Listener to get notifications when operation will be completed.
      * @param context Application context.
      */
@@ -81,9 +81,9 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
     /**
      * Called during http client setup to set authentication credentials. Should be overridden if necessary. Default implementation does
      * nothing and returns <code>true</code>.
-     *
+     * 
      * @param provider Credentials provider
-     *
+     * 
      * @return <code>true</code> if credentials were set correctly, or <code>false</code> in case of error.
      */
     protected boolean setCredentials(CredentialsProvider provider) {
@@ -92,9 +92,9 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
 
     /**
      * Called during http client setup. Can be overridden if necessary. Default implementation does nothing and returns <code>true</code>.
-     *
+     * 
      * @param httpClient HTTP client instance.
-     *
+     * 
      * @return <code>true</code> if initialization was successfull, <code>false</code> otherwise.
      */
     protected boolean prepareClient(HttpClient httpClient) {
@@ -103,9 +103,9 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
 
     /**
      * Called during http message setup. Can be overridden if necessary. Default implementation does nothing and returns <code>true</code>.
-     *
+     * 
      * @param httpMessage HTTP message instance.
-     *
+     * 
      * @return <code>true</code> if initialization was successfull, <code>false</code> otherwise.
      */
     protected boolean prepareMessage(HttpUriRequest httpMessage) {
@@ -144,26 +144,29 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
 
     /**
      * {@inheritDoc}
+     * 
      * @throws UnsupportedOperationException when unable to instantiate request.
      * @throws ClientProtocolException when an HTTP protocol error occurred.
      * @throws IOException when I/O error occurred or connection was aborted.
      */
     @Override
-    public void execute() throws UnsupportedOperationException, ClientProtocolException, IOException {
+    public String execute() throws UnsupportedOperationException, ClientProtocolException, IOException {
         // Checking for Internet connection before operation executing.
         ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isAvailable() || !networkInfo.isConnected()) {
             this.mErrorMessage = NO_DATA_CONNECTION_MESSAGE;
-            if (mListener != null) mListener.onError(new NetworkException(this.mErrorMessage));
-            return;
+            mCallbackWrapper.onError(new NetworkException(this.mErrorMessage));
+            return null;
         }
 
         completeOperation();
+        return mResult;
     }
 
     /**
      * Completes operation execution.
+     * 
      * @throws UnsupportedOperationException when unable to instantiate request.
      * @throws IOException when I/O error occurred or connection was aborted.
      * @throws ClientProtocolException when HTTP protocol error occurred.
@@ -173,16 +176,21 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
         executeOperation();
 
         if (this.hasError()) {
-            if (mListener != null) mListener.onError(new RuntimeException(this.getErrorMessage()));
+            mCallbackWrapper.onError(new RuntimeException(this.getErrorMessage()));
             return;
         }
 
-        boolean result = handleServerResponse(this.mResponse) && !hasError();
-        if (mListener != null) mListener.onDone(this.mResult);
+        boolean success = handleServerResponse(this.mResponse) && !hasError();
+        if (success) {
+            mCallbackWrapper.onDone(this.mResult);
+        } else {
+            mCallbackWrapper.onError(new RuntimeException("An error occurred during execution operation " + this.mOperationId));
+        }
     }
 
     /**
      * Performs request to server side. Handles response.
+     * 
      * @throws UnsupportedOperationException when unable to instantiate request.
      * @throws IOException when I/O error occurred or connection was aborted.
      * @throws ClientProtocolException when HTTP protocol error occurred.
@@ -193,7 +201,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
         HttpEntity ent = null;
 
         try {
-            //httpClient = new DefaultHttpClient();
+            // httpClient = new DefaultHttpClient();
             httpClient = getTrustAllHttpClient();
             prepareClient((DefaultHttpClient) httpClient);
             setCredentials(((DefaultHttpClient) httpClient).getCredentialsProvider());
@@ -245,7 +253,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
 
     /**
      * Gets an instance of secure HttpClient which accepts connections from all SSL hosts.
-     *
+     * 
      * @return HttpClient instance.
      * @throws GeneralSecurityException when unable to create client.
      * @throws IOException thrown never.
@@ -272,7 +280,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
 
     /**
      * Returns response code.
-     *
+     * 
      * @return Response code returned by the HTTP request.
      */
     public int getResponseCode() {
@@ -283,7 +291,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
      * Returns data that should be included in the POST request if one is performed. Should be overridden. Not intended to be called
      * directly. Must return either {@linkplain String} type, or {@linkplain List<NameValuePair>} type object instance or <code>null</code>
      * if request is of GET type. Default implementation returns <code>null</code>.
-     *
+     * 
      * @return Data that should included in the POST request body. Returns <code>null</code> by default.
      */
     protected Object getPostData() {
@@ -293,7 +301,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
     /**
      * Provides name-value http parameters list that will be included in the request. e.g. "...?name1=value1&...&namen=valueN". Should be
      * overridden. Not intended to be called directly. Called from {@linkplain #getHttpRequest()}.
-     *
+     * 
      * @return Name-value http parameters list. Returns <code>null</code> by default.
      */
     protected List<NameValuePair> getRequestParams() {

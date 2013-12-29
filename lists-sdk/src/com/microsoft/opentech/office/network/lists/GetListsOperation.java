@@ -21,7 +21,7 @@ import com.msopentech.odatajclient.engine.format.ODataPubFormat;
 public class GetListsOperation extends ODataOperation<ODataEntityRequest, List<Object>, ODataPubFormat> {
 
     public GetListsOperation(ICallback<List<Object>> listener, Context context) {
-        super(listener, context);
+        super(listener, context, false);
     }
 
     @Override
@@ -29,6 +29,7 @@ public class GetListsOperation extends ODataOperation<ODataEntityRequest, List<O
         return ODataRetrieveRequestFactory.getEntityRequest(getServerUrl());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected boolean handleServerResponse(ODataResponse response) {
         try {

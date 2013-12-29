@@ -21,7 +21,7 @@ public class GetListItemsOperation extends ODataOperation<ODataEntityRequest, Li
     private String mGUID;
 
     public GetListItemsOperation(ICallback<List<Object>> listener, Context context, String guid) {
-        super(listener, context);
+        super(listener, context, false);
         this.mGUID = guid;
     }
 
@@ -30,6 +30,7 @@ public class GetListItemsOperation extends ODataOperation<ODataEntityRequest, Li
         return ODataRetrieveRequestFactory.getEntityRequest(getServerUrl());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected boolean handleServerResponse(ODataResponse response) {
         Entity entity = Entity.from(((ODataRetrieveResponse<ODataEntity>) response).getBody()).build();

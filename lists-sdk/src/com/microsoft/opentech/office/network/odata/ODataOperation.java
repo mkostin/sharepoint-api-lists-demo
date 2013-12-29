@@ -16,8 +16,6 @@ import com.microsoft.opentech.office.Configuration;
 import com.microsoft.opentech.office.network.NetworkOperation;
 import com.microsoft.opentech.office.odata.Entity;
 import com.microsoft.opentech.office.odata.async.ICallback;
-import com.microsoft.opentech.office.odata.async.OfficeFuture;
-import com.microsoft.opentech.office.odata.async.OperationAsyncTask;
 import com.msopentech.odatajclient.engine.communication.request.ODataBasicRequestImpl;
 import com.msopentech.odatajclient.engine.communication.request.ODataRequest;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
@@ -35,7 +33,7 @@ import com.msopentech.odatajclient.engine.format.ODataValueFormat;
 
 /**
  * Implements common wrapper for OData operations based on OdataJClient library.
- *
+ * 
  * @param <REQUEST> Operation OData request type that extends {@link ODataRequest}.
  * @param <RESULT> Operation execution result.
  * @param <FORMAT> OData request format type, see {@link ODataPubFormat}, {@link ODataFormat}, {@link ODataValueFormat}
@@ -82,15 +80,22 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
     protected static final String SHAREPOINT_RESULTS_FIELD_NAME = "results";
 
     protected static final String SHAREPOINT_METADATA_ID_FIELD_NAME = "id";
+    
+    /**
+     * Indicates if current operation requires to set X-RequestDigest header for performing.
+     */
+    protected final boolean mRequiresDigest;
 
     /**
      * Creates a new instance of {@link ODataOperation} class.
-     *
+     * 
      * @param listener Listener to be executed when operation finished.
      * @param context Application context.
+     * @param requiresDigest Determines should current operation set X-RequestDigest header for performing.
      */
-    public ODataOperation(ICallback<RESULT> listener, Context context) {
+    public ODataOperation(ICallback<RESULT> listener, Context context, boolean requiresDigest) {
         super(listener, context);
+        mRequiresDigest = requiresDigest;
     }
 
     /**
@@ -103,28 +108,33 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * {@inheritDoc}
-     *
+     * 
      * @throws UnsupportedOperationException when unable to set headers for request.
      * @throws IOException when an I/O error occurred during operation execution or connection was abroted.
      * @throws ClientProtocolException when an HTTP protocol error occurred during operation execution.
      */
     @Override
-    public void execute() throws UnsupportedOperationException, ClientProtocolException, IOException {
+    public RESULT execute() throws UnsupportedOperationException, ClientProtocolException, IOException {
 
         try {
             REQUEST req = getRequest();
             setRequestHeaders(req, getRequestHeaders());
 
-            req.addCustomHeader(REQUEST_DIGEST_HEADER_NAME, getDigest());
+            if (mRequiresDigest) {
+                req.addCustomHeader(REQUEST_DIGEST_HEADER_NAME, getDigest());
+            }
 
             handleServerResponse(req.execute());
+
+            mCallbackWrapper.onDone(mResult);
             
-            mListener.onDone(mResult);
+            return mResult;
         } catch (Exception e) {
-            if (mListener != null) {
-                mListener.onError(e);
-            }
+            mCallbackWrapper.onError(e);
+            // TODO: may be throw e onwards?
         }
+        
+        return null;
     }
 
     @Override
@@ -145,20 +155,19 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * Gets form-digest-request result used to sign an operation.
-     *
+     * 
      * @return Value to be set to <i>X-RequestDigest</i> header.
      * @throws IOException when an I/O error occurred during digest retrieving.
      * @throws RuntimeException when an error occurred during digest retrieving.
      */
     protected final String getDigest() throws RuntimeException, IOException {
         DigestRequestOperation digestOper = new DigestRequestOperation(null, mContext);
-        digestOper.execute();
-        return digestOper.getResult();
+        return digestOper.execute();
     }
 
     /**
      * Handles server response. Default implementation does nothing and returns true.
-     *
+     * 
      * @param response Response to be handled.
      * @return <code>true</code> if response handled successfully, <code>false</code> otherwise.
      */
@@ -168,7 +177,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * Returns operation execution result.
-     *
+     * 
      * @return Operation result.
      */
     public RESULT getResult() {
@@ -177,7 +186,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * Helper to set up headers.
-     *
+     * 
      * @param req OData Request.
      * @param headers HTTP headers.
      */
@@ -190,9 +199,8 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
     }
 
     /**
-     * TODO do we still need this method?
-     * Generates metadata property based on given type and additional properties.
-     *
+     * TODO do we still need this method? Generates metadata property based on given type and additional properties.
+     * 
      * @param type Type of entity which metadata is generating for.
      * @param additionalProperties Additional properties to be added to metadata. May be null.
      * @return Metadata field as {@link ODataComplexValue}.
@@ -231,7 +239,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
             Pair<String, Object> pair = iterator.next();
             odataEntity.addProperty(getODataProperty(pair));
         }
-        
+
         return odataEntity;
     }
 
@@ -246,7 +254,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
         if (value instanceof Entity) {
             ODataComplexValue complex = new ODataComplexValue("");
-            Iterator<Pair<String, Object>> iterator = ((Entity)value).iterator();
+            Iterator<Pair<String, Object>> iterator = ((Entity) value).iterator();
             while (iterator.hasNext()) {
                 Pair<String, Object> field = iterator.next();
                 complex.add(getODataProperty(field));
@@ -258,15 +266,15 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
         if (value instanceof List || value instanceof Object[] || value instanceof Vector) {
             ODataCollectionValue collection = new ODataCollectionValue("");
             if (value instanceof List) {
-                for (Object item: (List<?>) value) {
+                for (Object item : (List<?>) value) {
                     collection.add(toODataObject(item));
                 }
             } else if (value instanceof Vector) {
-                for (Object item: (Vector<?>) value) {
+                for (Object item : (Vector<?>) value) {
                     collection.add(toODataObject(item));
                 }
             } else {
-                for (Object item: (Object[])value) {
+                for (Object item : (Object[]) value) {
                     collection.add(toODataObject(item));
                 }
             }
@@ -277,12 +285,12 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
         try {
             return new ODataPrimitiveValue.Builder().setValue(value).setType(EdmSimpleType.fromObject(value)).build();
         } catch (IllegalArgumentException e) {
-            return (ODataComplexValue)value;
+            return (ODataComplexValue) value;
         } catch (ClassCastException e) {
             throw new IllegalArgumentException("Cannot cast this object to OData type");
         }
     }
-    
+
     private static ODataProperty getODataProperty(Pair<String, Object> field) {
         ODataValue value = toODataObject(field.second);
         if (value == null) {
@@ -294,7 +302,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
         if (value.isCollection()) {
             return ODataFactory.newCollectionProperty(field.first, value.asCollection());
         }
-        
+
         return ODataFactory.newComplexProperty(field.first, value.asComplex());
     }
 }

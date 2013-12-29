@@ -42,7 +42,7 @@ class AccessCodeOperation extends BaseOperation<String> {
     }
 
     @Override
-    public void execute() throws RuntimeException, IOException {
+    public String execute() throws RuntimeException, IOException {
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         // Create the Web View to show the login page
@@ -140,6 +140,9 @@ class AccessCodeOperation extends BaseOperation<String> {
 
         wv.loadUrl(url);
         dialog.show();
+        
+        // Since result returned via callback we need not to return something here. So, return null?
+        return null;
     }
 
 }

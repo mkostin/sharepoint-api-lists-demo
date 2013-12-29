@@ -4,16 +4,29 @@ import com.microsoft.opentech.office.network.BaseOperation;
 
 import android.os.AsyncTask;
 
+/**
+ * Runs given operation asynchronously and sets its result to given {@link OfficeFuture}
+ * 
+ * @param <R> Result of operation.
+ */
 public class OperationAsyncTask<R> extends AsyncTask<BaseOperation<R>, Void, Void> {
 
+    /**
+     * Future to set result of operation.
+     */
     private OfficeFuture<R> mFuture;
 
-    public OperationAsyncTask(OfficeFuture<R> future) {
+    /**
+     * Creates a new instance of {@link OperationAsyncTask}
+     * 
+     * @param future Future to set result of operation.
+     */
+    public OperationAsyncTask(OfficeFuture<R> future) throws IllegalArgumentException {
         if (future == null) {
-            mFuture = new OfficeFuture<R>();
-        } else {
-            mFuture = future;
+            throw new IllegalArgumentException("future cannot be null");
         }
+        
+        mFuture = future;
     }
 
     @Override
@@ -25,8 +38,7 @@ public class OperationAsyncTask<R> extends AsyncTask<BaseOperation<R>, Void, Voi
             }
 
             BaseOperation<R> oper = operation[0];
-            oper.execute();
-            mFuture.setResult(oper.getResult());
+            mFuture.setResult(oper.execute());
 
         } catch (Throwable t) {
             mFuture.triggerError(t);

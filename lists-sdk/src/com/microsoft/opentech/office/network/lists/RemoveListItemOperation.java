@@ -20,7 +20,7 @@ public class RemoveListItemOperation extends ODataOperation<ODataDeleteRequest, 
     private int mIndex;
 
     public RemoveListItemOperation(ICallback<Boolean> listener, Context context, String guid, int index) {
-        super(listener, context);
+        super(listener, context, true);
         mListGUID = guid;
         mIndex = index;
     }

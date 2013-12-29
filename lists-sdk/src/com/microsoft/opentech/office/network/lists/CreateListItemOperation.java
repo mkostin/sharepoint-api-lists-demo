@@ -24,7 +24,7 @@ public class CreateListItemOperation extends ODataOperation<ODataEntityCreateReq
     private IEntityBuilder<Entity> mBuilder;
 
     public CreateListItemOperation(ICallback<Entity> listener, Context context, String listId, IEntityBuilder<Entity> entityBuilder) {
-        super(listener, context);
+        super(listener, context, true);
         listGUID = listId;
         mBuilder = entityBuilder;
     }

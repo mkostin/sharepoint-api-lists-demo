@@ -23,7 +23,7 @@ public class GetItemOperation extends ODataOperation<ODataEntityRequest, Entity,
     private int mItemId;
 
     public GetItemOperation(ICallback<Entity> listener, Context context, String listGUID, int id) {
-        super(listener, context);
+        super(listener, context, false);
         mListGUID = listGUID;
         mItemId = id;
     }
@@ -34,6 +34,7 @@ public class GetItemOperation extends ODataOperation<ODataEntityRequest, Entity,
                 + "(" + mItemId + ")");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected boolean handleServerResponse(ODataResponse response) {
         ODataEntity odataEntity = ((ODataRetrieveResponse<ODataEntity>) response).getBody();
