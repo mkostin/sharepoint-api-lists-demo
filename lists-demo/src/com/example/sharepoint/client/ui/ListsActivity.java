@@ -101,6 +101,11 @@ public class ListsActivity extends Activity implements ICallback<String> {
      * Curently selected list id.
      */
     private String mSelectedListId;
+    
+    /**
+     * Adapter index of currently updating item.
+     */
+    private int mUpdatingItemAdapterIndex;
 
     /**
      * Uri of the image faile attached to the list item during creation.
@@ -139,7 +144,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
         }
 
         setExecutionStatus(true, getString(R.string.pending_request));
-        new GetListsOperation(null, this).executeAsync().setCallback(new ICallback<List<Object>>() {
+        new GetListsOperation(new ICallback<List<Object>>() {
             public void onError(Throwable error) {
                 setExecutionStatus(false, getString(R.string.main_status_error));
             }
@@ -147,7 +152,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
             public void onDone(final List<Object> result) {
                 populateLists(result);
             }
-        });
+        }, this).executeAsync();
     }
 
     @Override
@@ -268,9 +273,10 @@ public class ListsActivity extends Activity implements ICallback<String> {
 
     private void updateItem(String listID, int adapterIndex) {
         try {
+            mUpdatingItemAdapterIndex = adapterIndex;
             String id = mItemsAdapter.getItem(adapterIndex).getId();
 
-            new GetItemOperation(null, this, listID, Integer.valueOf(id)).executeAsync().setCallback(new ICallback<Entity>() {
+            new GetItemOperation(new ICallback<Entity>() {
 
                 @Override
                 public void onError(final Throwable error) {
@@ -290,7 +296,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
                         Utility.showToastNotification("Unable to retrieve item");
                     }
                 }
-            });
+            }, this, listID, Integer.valueOf(id)).executeAsync();
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".updateItem(): Error.");
         }
@@ -299,7 +305,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
     public void deleteList(String title, final int adapterIndex) {
 
         String id = mListsAdapter.getItem(adapterIndex).getId();
-        new RemoveListOperation(null, this, id).executeAsync().setCallback(new ICallback<Boolean>() {
+        new RemoveListOperation(new ICallback<Boolean>() {
             public void onError(final Throwable error) {
                 Utility.showToastNotification("Unable to remove list: " + error.getMessage());
             }
@@ -311,19 +317,19 @@ public class ListsActivity extends Activity implements ICallback<String> {
 
                 mList.invalidate();
             }
-        });
+        }, this, id).executeAsync();
     }
 
     private void deleteListItem(String listID, final int adapterIndex) {
         try {
             String id = mItemsAdapter.getItem(adapterIndex).getId();
-            new RemoveListItemOperation(null, this, listID, Integer.valueOf(id)).executeAsync().setCallback(new ICallback<Boolean>() {
+            new RemoveListItemOperation(new ICallback<Boolean>() {
                 public void onError(Throwable error) {
                     Utility.showToastNotification("Unable to remove item");
                 }
 
                 public void onDone(final Boolean result) {
-                    if (!result) {
+                    if (result) {
                         // TODO: check for result value
                         mItemsAdapter.remove(adapterIndex);
                         mItemsAdapter.notifyDataSetChanged();
@@ -333,7 +339,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
                         Utility.showToastNotification("Unable to remove item");
                     }
                 }
-            });
+            }, this, listID, Integer.valueOf(id)).executeAsync();
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".removeItem(): Error.");
         }
@@ -341,7 +347,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
 
     public void readList(String title, int index) {
         mSelectedListId = mListsAdapter.getItem(index).getId();
-        new GetListItemsOperation(null, this, mSelectedListId).executeAsync().setCallback(new ICallback<List<Object>>() {
+        new GetListItemsOperation(new ICallback<List<Object>>() {
             public void onError(final Throwable error) {
                 Utility.showToastNotification("Unable to get list items: " + error.getMessage());
             }
@@ -349,7 +355,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
             public void onDone(final List<Object> result) {
                 populateItems(result);
             }
-        });
+        }, this, mSelectedListId).executeAsync();
     }
 
     private void readListItem(int position) {
@@ -362,10 +368,10 @@ public class ListsActivity extends Activity implements ICallback<String> {
 
     public void createList() {
 
-        Builder builder = new Entity.Builder("SP.List").set("BaseTemplate", 100).
-                set("Title", "List, created using API").set("Description", "SDK Playground");
+        Builder builder = new Entity.Builder("SP.List").set("BaseTemplate", 100).set("Title", "List, created using API")
+                .set("Description", "SDK Playground");
 
-        new CreateListOperation(null, this, builder).executeAsync().setCallback(new ICallback<Entity>() {
+        new CreateListOperation(new ICallback<Entity>() {
             public void onError(Throwable error) {
                 Utility.showToastNotification(getString(R.string.main_list_create_failure));
             }
@@ -373,7 +379,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
             public void onDone(final Entity result) {
                 addEntity(result, mListsAdapter);
             }
-        });
+        }, this, builder).executeAsync();
     }
 
     private void createListItem(final Item item) {
@@ -386,22 +392,21 @@ public class ListsActivity extends Activity implements ICallback<String> {
                     Builder builder = new Builder().set("Title", item.getTitle()).set("Image", image);
 
                     // Push it to the selected list
-                new CreateListItemOperation(null, ListsActivity.this, mSelectedListId, builder).executeAsync().setCallback(
-                        new ICallback<Entity>() {
-                            @Override
-                            public void onError(Throwable error) {
+                    new CreateListItemOperation(new ICallback<Entity>() {
+                        @Override
+                        public void onError(Throwable error) {
+                            Utility.showToastNotification(getString(R.string.main_item_create_failure));
+                        }
+
+                        @Override
+                        public void onDone(final Entity result) {
+                            if (result != null) {
+                                addEntity(result, mItemsAdapter);
+                            } else {
                                 Utility.showToastNotification(getString(R.string.main_item_create_failure));
                             }
-
-                            @Override
-                            public void onDone(final Entity result) {
-                                if (result != null) {
-                                    addEntity(result, mItemsAdapter);
-                                } else {
-                                    Utility.showToastNotification(getString(R.string.main_item_create_failure));
-                                }
-                            }
-                        });
+                        }
+                    }, ListsActivity.this, mSelectedListId, builder).executeAsync();
                 } catch (Exception e) {
                     Utility.showAlertDialog(getString(R.string.main_item_create_failure), ListsActivity.this);
                     Logger.logApplicationException(e, getClass().getSimpleName() + ".addNewItem(): Error.");
@@ -413,7 +418,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
 
     /**
      * Adds entity to provided adapter.
-     *
+     * 
      * @param entity Item to add.
      * @param adapter Adapter to insert item to.
      */
@@ -522,7 +527,7 @@ public class ListsActivity extends Activity implements ICallback<String> {
 
     /**
      * Fills current lists list with an update from server.
-     *
+     * 
      * @param operation Server operation
      * @param executionResult execution result flag.
      */
@@ -715,17 +720,20 @@ public class ListsActivity extends Activity implements ICallback<String> {
                             .set("Url", item.getImageUrl().toString()).build();
                     Builder builder = new Builder().set("Title", item.getTitle()).set("Image", image);
 
-                    new UpdateListItemOperation(null, ListsActivity.this, mSelectedListId, Integer.valueOf(item.getId()), builder).executeAsync()
-                            .setCallback(new ICallback<Boolean>() {
-                                public void onError(Throwable error) {
-                                    Utility.showToastNotification("Failure on update");
-                                }
+                    new UpdateListItemOperation(new ICallback<Boolean>() {
+                        public void onError(Throwable error) {
+                            Utility.showToastNotification("Failure on update");
+                        }
 
-                                @Override
-                                public void onDone(final Boolean result) {
-                                    Utility.showToastNotification(result ? "Updated successfully" : "Failure on update");
-                                }
-                            });
+                        @Override
+                        public void onDone(final Boolean result) {
+                            Utility.showToastNotification(result ? "Updated successfully" : "Failure on update");
+                            mItemsAdapter.getItem(mUpdatingItemAdapterIndex).setId(item.getId());
+                            mItemsAdapter.getItem(mUpdatingItemAdapterIndex).setImageUrl(item.getImageUrl());
+                            mItemsAdapter.getItem(mUpdatingItemAdapterIndex).setTitle(item.getTitle());
+                            mItemsAdapter.notifyDataSetChanged();
+                        }
+                    }, ListsActivity.this, mSelectedListId, Integer.valueOf(item.getId()), builder).executeAsync();
                 } catch (Exception e) {
                     Logger.logApplicationException(e, getClass().getSimpleName() + ".updateListItem(): Error.");
                 }
@@ -771,8 +779,8 @@ public class ListsActivity extends Activity implements ICallback<String> {
                         }
                     }
 
-                    //TODO: Fix constructor arguments usage
-                    new CreateFileOperation(null, this, IMAGE_LIB_NAME, fileName, image).executeAsync().setCallback(this);
+                    // TODO: Fix constructor arguments usage
+                    new CreateFileOperation(this, this, IMAGE_LIB_NAME, fileName, image).executeAsync();
                 } catch (Exception e) {
                     Logger.logApplicationException(e, getClass().getSimpleName() + ".onActivityResult(): Error.");
                 }

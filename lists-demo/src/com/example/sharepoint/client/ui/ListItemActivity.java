@@ -26,7 +26,7 @@ public class ListItemActivity extends Activity implements ICallback<Entity> {
 
         try {
             Bundle extras = getIntent().getExtras();
-            new GetItemOperation(null, this, extras.getString("listGUID"), extras.getInt("itemId")).executeAsync().setCallback(this);
+            new GetItemOperation(this, this, extras.getString("listGUID"), extras.getInt("itemId")).executeAsync();
         } catch (Exception e) {
             Logger.logApplicationException(e, getClass().getSimpleName() + ".onCreate(): Error.");
         }
