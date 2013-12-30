@@ -13,6 +13,7 @@ import android.content.Context;
 import android.util.Pair;
 
 import com.microsoft.opentech.office.Configuration;
+import com.microsoft.opentech.office.network.NetworkException;
 import com.microsoft.opentech.office.network.NetworkOperation;
 import com.microsoft.opentech.office.odata.Entity;
 import com.microsoft.opentech.office.odata.async.ICallback;
@@ -33,7 +34,7 @@ import com.msopentech.odatajclient.engine.format.ODataValueFormat;
 
 /**
  * Implements common wrapper for OData operations based on OdataJClient library.
- * 
+ *
  * @param <REQUEST> Operation OData request type that extends {@link ODataRequest}.
  * @param <RESULT> Operation execution result.
  * @param <FORMAT> OData request format type, see {@link ODataPubFormat}, {@link ODataFormat}, {@link ODataValueFormat}
@@ -80,7 +81,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
     protected static final String SHAREPOINT_RESULTS_FIELD_NAME = "results";
 
     protected static final String SHAREPOINT_METADATA_ID_FIELD_NAME = "id";
-    
+
     /**
      * Indicates if current operation requires to set X-RequestDigest header for performing.
      */
@@ -88,7 +89,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * Creates a new instance of {@link ODataOperation} class.
-     * 
+     *
      * @param listener Listener to be executed when operation finished.
      * @param context Application context.
      * @param requiresDigest Determines should current operation set X-RequestDigest header for performing.
@@ -108,7 +109,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @throws UnsupportedOperationException when unable to set headers for request.
      * @throws IOException when an I/O error occurred during operation execution or connection was abroted.
      * @throws ClientProtocolException when an HTTP protocol error occurred during operation execution.
@@ -127,14 +128,12 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
             handleServerResponse(req.execute());
 
             mCallbackWrapper.onDone(mResult);
-            
+
             return mResult;
         } catch (Exception e) {
             mCallbackWrapper.onError(e);
-            // TODO: may be throw e onwards?
+            throw new NetworkException("OdataOperation.execute() - Error: " + e.getMessage(), e);
         }
-        
-        return null;
     }
 
     @Override
@@ -155,7 +154,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * Gets form-digest-request result used to sign an operation.
-     * 
+     *
      * @return Value to be set to <i>X-RequestDigest</i> header.
      * @throws IOException when an I/O error occurred during digest retrieving.
      * @throws RuntimeException when an error occurred during digest retrieving.
@@ -167,7 +166,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * Handles server response. Default implementation does nothing and returns true.
-     * 
+     *
      * @param response Response to be handled.
      * @return <code>true</code> if response handled successfully, <code>false</code> otherwise.
      */
@@ -177,7 +176,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * Returns operation execution result.
-     * 
+     *
      * @return Operation result.
      */
     public RESULT getResult() {
@@ -186,7 +185,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * Helper to set up headers.
-     * 
+     *
      * @param req OData Request.
      * @param headers HTTP headers.
      */
@@ -200,7 +199,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
 
     /**
      * TODO do we still need this method? Generates metadata property based on given type and additional properties.
-     * 
+     *
      * @param type Type of entity which metadata is generating for.
      * @param additionalProperties Additional properties to be added to metadata. May be null.
      * @return Metadata field as {@link ODataComplexValue}.
