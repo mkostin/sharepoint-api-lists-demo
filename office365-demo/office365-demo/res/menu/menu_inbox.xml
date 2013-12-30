@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:office365="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:menuCategory="system"
+        android:orderInCategory="0"
+        android:id="@+id/inbox_menu_search"
+        android:icon="@drawable/abc_ic_search"
+        android:title="@string/action_search"
+        office365:actionViewClass="android.support.v7.widget.SearchView"
+        office365:showAsAction="always"/>
+
+    <item
+        android:menuCategory="system"
+        android:orderInCategory="1"
+        android:id="@+id/inbox_menu_create_email"
+        android:visible="true"
+        android:title="@string/action_write_email"
+        android:icon="@android:drawable/ic_menu_edit"
+        office365:showAsAction="always"/>
+
+    <item
+        android:menuCategory="system"
+        android:orderInCategory="2"
+        android:id="@+id/inbox_menu_settings"
+        android:title="@string/action_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        office365:showAsAction="ifRoom"/>
+
+    <item
+        android:menuCategory="system"
+        android:orderInCategory="3"
+        android:id="@+id/inbox_menu_share"
+        android:title="@string/action_share"
+        office365:actionProviderClass="android.support.v7.widget.ShareActionProvider"
+        office365:showAsAction="ifRoom"/>
+
+</menu>

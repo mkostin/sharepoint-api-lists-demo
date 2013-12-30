@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dialog_margin" >
+
+        <TextView
+            android:id="@+id/main_login_dialog_login_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="@dimen/dialog_margin"
+            android:text="@string/main_login_dialog_login"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <EditText
+            android:id="@+id/main_login_dialog_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/main_login_dialog_login"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="@dimen/dialog_margin"
+            android:layout_toRightOf="@+id/main_login_dialog_password_label"
+            android:ems="10"
+            android:imeOptions="actionDone"
+            android:inputType="textPassword"
+            android:text="Vtc#Z9rw"  />
+
+        <EditText
+            android:id="@+id/main_login_dialog_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/main_login_dialog_login_label"
+            android:layout_alignLeft="@id/main_login_dialog_password"
+            android:layout_alignRight="@id/main_login_dialog_password"
+            android:ems="10"
+            android:hint="@string/main_login_dialog_password_hint"
+            android:inputType="textEmailAddress"
+            android:text="v-maxkos@microsoft.com" >
+
+            <requestFocus />
+        </EditText>
+
+        <TextView
+            android:id="@+id/main_login_dialog_password_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/main_login_dialog_password"
+            android:layout_alignLeft="@id/main_login_dialog_login_label"
+            android:text="@string/main_login_dialog_passsword"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/dialog_margin"
+        android:layout_marginLeft="@dimen/dialog_margin"
+        android:layout_marginRight="@dimen/dialog_margin" >
+
+        <TextView
+            android:id="@+id/main_login_dialog_login_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dip"
+            android:layout_weight="1"
+            android:background="@drawable/button_background_selector"
+            android:padding="8dp"
+            android:text="@string/main_login_dialog_login"
+            android:textColor="@color/button_text_selector" />
+
+        <TextView
+            android:id="@+id/main_login_dialog_cancel_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dip"
+            android:layout_weight="1"
+            android:background="@drawable/button_background_selector"
+            android:padding="8dp"
+            android:text="@string/main_login_dialog_cancel"
+            android:textColor="@color/button_text_selector" />
+    </LinearLayout>
+
+</LinearLayout>
