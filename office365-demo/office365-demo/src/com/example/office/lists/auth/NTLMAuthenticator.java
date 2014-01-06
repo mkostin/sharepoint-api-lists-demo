@@ -10,8 +10,8 @@ import org.apache.http.params.CoreProtocolPNames;
 
 import com.example.office.lists.auth.ntlm.NTLMSchemeFactory;
 import com.example.office.lists.storage.AuthPreferences;
-import com.microsoft.opentech.office.network.NetworkException;
-import com.microsoft.opentech.office.network.auth.AbstractBasicAuthenticator;
+import com.microsoft.opentech.office.core.network.NetworkException;
+import com.microsoft.opentech.office.core.network.auth.AbstractBasicAuthenticator;
 
 /**
  * Abstract implementation for NTLM credentials required to authorize to Office 365 online.

@@ -78,7 +78,7 @@ public class Constants {
     /**
      * NTLM authentication required cookie.
      */
-    public static final String COOKIE_FED_AUTH = "FedAuth=77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48U1A+RmFsc2UsMGguZnxtZW1iZXJzaGlwfDEwMDM3ZmZlODc5NDU4NjJAbGl2ZS5jb20sMCMuZnxtZW1iZXJzaGlwfHYtbWF4a29zQG1pY3Jvc29mdC5jb20sMTMwMzMzMzk2MTQ2OTc5MjkwLEZhbHNlLEczNGtrcjRxUXUrWm9iVlE4dW5nMFdqdENpZVZhaWwyQUZTNHFzT2k0WHB0L05IS1libkRKdS8wQndKdXZKMHhtQVRlTEhRdzd0Y3BpZmpsRXV4aEUvd2NRZkF2VTl6UC9sOXRLTTI2NmFSNzNKc1VLVHg5SEptaEpTb1NoMVY2YTF3UlJmZU5SMG9FUERxR3Rpb2VPRGhtb1R5eGRzaURkbzJXRk1pQklvTklZcWhQSFhVQ0JCK1VTUjJ1Vk9keUNNMTBJOUtWSUpzbXJRVk9DU2RjRllnMnNxc2JVTFFOUlIxRmtVNjRWeHZZbkYybjU4RXJkUElwaEtRVzRGK0JQTG5TRExhbXFma014dHBWWkY2anZ6VGt3ZDZpQ3NuL1Y1eE42T0JMT29XOW1vRFdMdmVQb1Q5Nm85aFd2NXRBam9FOUNqaTNKRlRwanhTMVJpb1NzQT09LGh0dHBzOi8vbWljcm9zb2Z0LnNoYXJlcG9pbnQuY29tL3RlYW1zL01TT3BlblRlY2gtQ0xBL3Rlc3RzaXRlL19sYXlvdXRzLzE1L3N0YXJ0LmFzcHg/TURTTG9naW5BbGxvd2VkPTYzNTI0MDAxOTkyMTM2OTYwMiZhbXA7TURTTG9naW5BbGxvd2VkVXJsPWh0dHBzOi8vbWljcm9zb2Z0LnNoYXJlcG9pbnQuY29tL3RlYW1zL01TT3BlblRlY2gtQ0xBL3Rlc3RzaXRlL19sYXlvdXRzLzE1L3N0YXJ0LmFzcHgjL0xpc3RzL1Rlc3QvQWxsSXRlbXMuYXNweCUyM0lucGx2aWV3SGFzaGYzYWFjY2Y1LTlhMjUtNDNlOC1hMWVkLWZlNGRiM2Q5NmY4Zj08L1NQPg==";
+    public static final String COOKIE_FED_AUTH = "FedAuth=77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48U1A+RmFsc2UsMGguZnxtZW1iZXJzaGlwfDEwMDM3ZmZlODc5NDU4NjJAbGl2ZS5jb20sMCMuZnxtZW1iZXJzaGlwfHYtbWF4a29zQG1pY3Jvc29mdC5jb20sMTMwMzM4MDg4OTAwNDA2NTc3LEZhbHNlLGtDSFpDZGVoMExKWmZGWXhBSkxHZFRYTlBsaXlTaThvRDFvbVdRcmlMRVB5emd5QWJGcFBFSWdOV2wxZGdYYk5jN0JqTUFIWGY0Y0w5Lzd5VmZ5aVREdkY0RFQ1ZDlsMTE5eEV0d1liR1pzVEN4bE5RWXREeFZIenl3RjdWa0VhYjlTSlZYOGRKa2VnMVRBeExvNjAvTjIyUytBc3FieGlRUkVKd1lSYXYyTURCM2x4alR5NzB4dEVJMjkzb2ptQm04TzdSempGSkpsZkNvQVh1dW1ZVGw1R3BITEVmK1NNV0FxN2VnZm5QSlUvWXoyMHZmNUljUHFqVTVITWhYa2xhSEFWaFltai9Ka0pJbTlKazVMT0FFS3VzdHJpU0cxN0VtR1VULzh0OTZoYjNCMFhFZHgrTGZBZGxKZ2VKdUZqZ0ExYzBUWUppUjFKb3NHZVFqWmxWZz09LGh0dHBzOi8vbWljcm9zb2Z0LnNoYXJlcG9pbnQuY29tL3RlYW1zL01TT3BlblRlY2gtQ0xBL3Rlc3RzaXRlL1NoYXJlZCBEb2N1bWVudHMvRm9ybXMvQWxsSXRlbXMuYXNweDwvU1A+";
 
     /**
      * NTLM authentication required cookie.
@@ -207,11 +207,8 @@ public class Constants {
             TOREAD  (R.string.screens_mail_to_read, R.drawable.empty, ScreenGroup.MAIL, ScreenGroup.DRAWER),
             TRASH   (R.string.screens_mail_trash, R.drawable.trash, ScreenGroup.MAIL, ScreenGroup.DRAWER),
             SENT    (R.string.screens_mail_sent, R.drawable.sent, ScreenGroup.MAIL, ScreenGroup.DRAWER),
-            DELIM1  (R.string.screens_drawer_delimiter, R.drawable.empty, ScreenGroup.DRAWER),
             LISTS   (R.string.screens_lists, R.drawable.lists, ScreenGroup.LISTS, ScreenGroup.DRAWER),
-            DELIM2  (R.string.screens_drawer_delimiter, R.drawable.empty, ScreenGroup.DRAWER),
             FILES   (R.string.screens_files, R.drawable.files, ScreenGroup.FILES, ScreenGroup.DRAWER),
-            DELIM3  (R.string.screens_drawer_delimiter, R.drawable.empty, ScreenGroup.DRAWER),
             SETINGS (R.string.screens_settings, R.drawable.settings, ScreenGroup.DRAWER),
             HELP    (R.string.screens_help, R.drawable.help, ScreenGroup.DRAWER);
 

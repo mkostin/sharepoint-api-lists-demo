@@ -45,15 +45,15 @@ import com.example.office.ui.BaseActivity;
 import com.example.office.ui.IFragmentNavigator;
 import com.example.office.ui.ListFragment;
 import com.example.office.utils.Utility;
-import com.microsoft.opentech.office.Configuration;
-import com.microsoft.opentech.office.network.auth.AbstractOfficeAuthenticator;
-import com.microsoft.opentech.office.network.auth.ISharePointCredentials;
-import com.microsoft.opentech.office.network.lists.CreateListOperation;
-import com.microsoft.opentech.office.network.lists.GetListsOperation;
-import com.microsoft.opentech.office.network.lists.RemoveListOperation;
-import com.microsoft.opentech.office.odata.Entity;
-import com.microsoft.opentech.office.odata.Entity.Builder;
-import com.microsoft.opentech.office.odata.async.ICallback;
+import com.microsoft.opentech.office.core.Configuration;
+import com.microsoft.opentech.office.core.network.auth.AbstractOfficeAuthenticator;
+import com.microsoft.opentech.office.core.network.auth.ISharePointCredentials;
+import com.microsoft.opentech.office.core.odata.Entity;
+import com.microsoft.opentech.office.core.odata.Entity.Builder;
+import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.lists.network.CreateListOperation;
+import com.microsoft.opentech.office.lists.network.GetListsOperation;
+import com.microsoft.opentech.office.lists.network.RemoveListOperation;
 import com.squareup.otto.Subscribe;
 
 /**
@@ -268,7 +268,7 @@ public class ListsFragment extends ListFragment<Item, ListsAdapter> {
         //TODO: verify if this is required.
         ((ActionBarActivity) getActivity()).supportInvalidateOptionsMenu();
     }
-
+    
     public void createList() {
 
         Builder builder = new Entity.Builder("SP.List").set("BaseTemplate", 100).set("Title", "List, created using API")
@@ -297,7 +297,7 @@ public class ListsFragment extends ListFragment<Item, ListsAdapter> {
     public void onAddButtonClick(View button) {
         createList();
     }
-
+    
     /**
      * Show data from lists adapter.
      */

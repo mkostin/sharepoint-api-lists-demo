@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.IOUtils;
 
@@ -21,6 +22,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,15 +42,15 @@ import com.example.office.lists.data.Item;
 import com.example.office.logger.Logger;
 import com.example.office.ui.ListFragment;
 import com.example.office.utils.Utility;
-import com.microsoft.opentech.office.network.files.CreateFileOperation;
-import com.microsoft.opentech.office.network.lists.CreateListItemOperation;
-import com.microsoft.opentech.office.network.lists.GetItemOperation;
-import com.microsoft.opentech.office.network.lists.GetListItemsOperation;
-import com.microsoft.opentech.office.network.lists.RemoveListItemOperation;
-import com.microsoft.opentech.office.network.lists.UpdateListItemOperation;
-import com.microsoft.opentech.office.odata.Entity;
-import com.microsoft.opentech.office.odata.Entity.Builder;
-import com.microsoft.opentech.office.odata.async.ICallback;
+import com.microsoft.opentech.office.core.odata.Entity;
+import com.microsoft.opentech.office.core.odata.Entity.Builder;
+import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.files.network.CreateFileOperation;
+import com.microsoft.opentech.office.lists.network.CreateListItemOperation;
+import com.microsoft.opentech.office.lists.network.GetItemOperation;
+import com.microsoft.opentech.office.lists.network.GetListItemsOperation;
+import com.microsoft.opentech.office.lists.network.RemoveListItemOperation;
+import com.microsoft.opentech.office.lists.network.UpdateListItemOperation;
 
 /**
  * Inbox fragment containing logic related to managing inbox emails.
@@ -101,6 +103,11 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
     private Item mItem;
 
     /**
+     * Future for operation that gets current list items.
+     */
+    private Future<List<Object>> mGetListItemsFuture = null;
+
+    /**
      * Constructor.
      */
     public ListItemsFragment() {}
@@ -108,11 +115,11 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActionBar actionBar = ((ActionBarActivity)getActivity()).getSupportActionBar();
+        ActionBar actionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 
         Bundle args = getArguments();
-        if(args != null) {
+        if (args != null) {
             mSelectedListId = args.getString("listID");
         }
     }
@@ -123,7 +130,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
 
         try {
             Bundle args = getArguments();
-            if(args != null) {
+            if (args != null) {
                 mSelectedListId = args.getString("listID");
             }
 
@@ -131,7 +138,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
             registerForContextMenu(mList);
 
             final Button add = (Button) rootView.findViewById(R.id.add_list_button);
-            add.setOnClickListener(new OnClickListener(){
+            add.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     onAddButtonClick(add);
@@ -157,7 +164,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
 
         showWorkInProgress(true, true);
 
-        new GetListItemsOperation(new ICallback<List<Object>>() {
+        mGetListItemsFuture = new GetListItemsOperation(new ICallback<List<Object>>() {
             public void onError(final Throwable error) {
                 Utility.showToastNotification("Unable to get list items: " + error.getMessage());
                 showWorkInProgress(false, false);
@@ -311,6 +318,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
     @Override
     public void onDone(final String result) {
         showWorkInProgress(false, false);
+        mGetListItemsFuture = null;
 
         // Getting filename from URI
         URI uri = URI.create(result);
@@ -336,6 +344,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
 
     @Override
     public void onError(final Throwable error) {
+        mGetListItemsFuture = null;
         Utility.showToastNotification("File upload failed: " + error.getMessage());
         showWorkInProgress(false, false);
     }
@@ -343,6 +352,18 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
     public void onAddButtonClick(View button) {
         mItem = new Item();
         showItemDialog(getString(R.string.main_item_image_title_default), getString(R.string.main_item_image_url_default), true);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (mGetListItemsFuture != null) {
+                mGetListItemsFuture.cancel(true);
+                mGetListItemsFuture = null;
+                showWorkInProgress(false, false);
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void populateItems(List<Object> items) {

@@ -6,7 +6,7 @@ import com.example.office.lists.events.CredentialsStoredEvent;
 import com.example.office.logger.Logger;
 import com.example.office.storage.LocalPersistence;
 import com.example.office.utils.Utility;
-import com.microsoft.opentech.office.network.auth.ISharePointCredentials;
+import com.microsoft.opentech.office.core.network.auth.ISharePointCredentials;
 
 /**
  * Implements authentication preferences.

@@ -2,6 +2,7 @@ package com.example.office.lists.ui;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.view.KeyEvent;
 
 import com.example.office.R;
 import com.example.office.logger.Logger;
@@ -22,4 +23,13 @@ public class ListItemActivity extends BaseActivity {
         }
     }
 
+    
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            ListItemFragment fragment = (ListItemFragment) getSupportFragmentManager().findFragmentById(R.id.list_item_details);
+            return fragment.onKeyDown(keyCode, event) ? true : super.onKeyDown(keyCode, event);
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }

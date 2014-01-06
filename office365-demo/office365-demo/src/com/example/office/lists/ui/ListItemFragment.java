@@ -2,11 +2,13 @@ package com.example.office.lists.ui;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Pair;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,14 +19,16 @@ import android.widget.TextView;
 import com.example.office.R;
 import com.example.office.logger.Logger;
 import com.example.office.ui.BaseFragment;
-import com.microsoft.opentech.office.network.lists.GetItemOperation;
-import com.microsoft.opentech.office.odata.Entity;
-import com.microsoft.opentech.office.odata.async.ICallback;
+import com.microsoft.opentech.office.core.odata.Entity;
+import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.lists.network.GetItemOperation;
 
 /**
  * Email details fragment.
  */
 public class ListItemFragment extends BaseFragment implements ICallback<Entity> {
+
+    private Future<Entity> mGetItemFuture = null;
 
     @Override
     protected int getFragmentLayoutId() {
@@ -40,7 +44,7 @@ public class ListItemFragment extends BaseFragment implements ICallback<Entity> 
             activity.getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 
             Bundle extras = getActivity().getIntent().getExtras();
-            new GetItemOperation(this, getActivity(), extras.getString("listGUID"), extras.getInt("itemId")).executeAsync();
+            mGetItemFuture = new GetItemOperation(this, getActivity(), extras.getString("listGUID"), extras.getInt("itemId")).executeAsync();
 
             ((ActionBarActivity) getActivity()).setSupportProgressBarIndeterminateVisibility(false);
         } catch (Exception e) {
@@ -50,11 +54,26 @@ public class ListItemFragment extends BaseFragment implements ICallback<Entity> 
         return rootView;
     }
 
-    public void onDone(final Entity result) {
-        showFields(result);
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (mGetItemFuture != null) {
+                mGetItemFuture.cancel(true);
+                mGetItemFuture = null;
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
     }
 
-    public void onError(Throwable error) {}
+    public void onDone(final Entity result) {
+        showFields(result);
+        mGetItemFuture = null;
+    }
+
+    public void onError(Throwable error) {
+        mGetItemFuture = null;
+    }
 
     private void showFields(Entity value) {
         getView().findViewById(R.id.get_fields_text_stub).setVisibility(View.GONE);

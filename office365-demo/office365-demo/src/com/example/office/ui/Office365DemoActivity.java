@@ -1,5 +1,7 @@
 package com.example.office.ui;
 
+import java.util.ArrayList;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -29,6 +31,7 @@ import com.example.office.Constants.UI.ScreenGroup;
 import com.example.office.OfficeApplication;
 import com.example.office.R;
 import com.example.office.adapters.SlidingDrawerAdapter;
+import com.example.office.lists.ui.ListItemsFragment;
 import com.example.office.lists.ui.ListsFragment;
 import com.example.office.logger.Logger;
 import com.example.office.mail.ui.box.ArchiveFragment;
@@ -116,7 +119,9 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
-        SlidingDrawerAdapter drawerAdapter = new SlidingDrawerAdapter(OfficeApplication.getContext(), R.layout.drawer_list_item);
+        //TODO: fix delimiter passing.
+        SlidingDrawerAdapter drawerAdapter = new SlidingDrawerAdapter(OfficeApplication.getContext(), R.layout.drawer_list_item,
+                R.layout.drawer_delimiter, new ArrayList<Integer>() {{ add(7); add(9); add(11); }});
         mDrawerList.setAdapter(drawerAdapter);
 
         mDrawerList.setOnItemClickListener(new ListView.OnItemClickListener() {
@@ -125,8 +130,10 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
                 try {
                     Screen[] drawerScreens = ScreenGroup.DRAWER.getMembers().toArray(new Screen[0]);
                     Screen currentScreen = DEFAULT_BOX;
-                    if (drawerScreens != null && drawerScreens.length - 1 >= position) {
-                        currentScreen = drawerScreens[position];
+
+                    // use id instead of position here because some positions used by delimiters, id contains real index of clicked item
+                    if (drawerScreens != null && drawerScreens.length - 1 >= id) {
+                        currentScreen = drawerScreens[(int) id];
                     }
                     switchScreen(currentScreen);
                 } catch (Exception e) {
@@ -263,7 +270,16 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             BaseFragment fragment = getCurrentFragment();
             if (fragment != null) {
-                boolean result = fragment.onKeyDown(keyCode, event);
+                boolean result;
+                if (fragment instanceof ListsFragment) {
+                    // need to cast fragment to call descendant method.
+                    result = ((ListsFragment) fragment).onKeyDown(keyCode, event);
+                } else if (fragment instanceof ListItemsFragment) {
+                    result = ((ListItemsFragment) fragment).onKeyDown(keyCode, event);
+                } else {
+                    result = fragment.onKeyDown(keyCode, event);
+                }
+
                 return result ? true : super.onKeyDown(keyCode, event);
             }
         }
@@ -284,9 +300,9 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
             setTitle(newScreen.getName(this));
             actionBar.setLogo(newScreen.getIcon(this));
 
-            if(newScreen.in(ScreenGroup.MAIL)) {
+            if (newScreen.in(ScreenGroup.MAIL)) {
                 Screen currentScreen = Screen.getByTag(mCurrentFragmentTag, this);
-                if(!currentScreen.in(ScreenGroup.MAIL)) {
+                if (!currentScreen.in(ScreenGroup.MAIL)) {
                     Fragment newFragment;
                     FragmentManager fragmentManager = getSupportFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -376,8 +392,8 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
     @Override
     public boolean onQueryTextChange(String query) {
         try {
-            ListFragment<?,?> fragment = (ListFragment<?,?>) getCurrentFragment();
-            if(fragment != null) {
+            ListFragment<?, ?> fragment = (ListFragment<?, ?>) getCurrentFragment();
+            if (fragment != null) {
                 fragment.onQueryTextChange(query);
             }
         } catch (Exception e) {
@@ -466,7 +482,7 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
 
     @Override
     public void setCurrentFragmentTag(String tag) {
-        if(!TextUtils.isEmpty(tag)) {
+        if (!TextUtils.isEmpty(tag)) {
             mCurrentFragmentTag = tag;
         }
     }
