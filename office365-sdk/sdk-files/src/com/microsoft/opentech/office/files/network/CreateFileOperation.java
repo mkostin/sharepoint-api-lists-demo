@@ -10,12 +10,12 @@ import org.apache.http.client.methods.HttpUriRequest;
 import android.content.Context;
 import android.util.Pair;
 
-import com.microsoft.opentech.office.core.Configuration;
-import com.microsoft.opentech.office.core.network.HttpOperation;
-import com.microsoft.opentech.office.core.network.odata.DigestRequestOperation;
-import com.microsoft.opentech.office.core.network.odata.ODataOperation;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.Configuration;
+import com.microsoft.opentech.office.core.net.HttpOperation;
+import com.microsoft.opentech.office.core.odata.DigestRequestOperation;
 import com.microsoft.opentech.office.core.odata.Entity;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.odata.ODataOperation;
 
 /**
  * Operation to create file on server side.
@@ -45,7 +45,7 @@ public class CreateFileOperation extends HttpOperation {
      * @param fileName File name.
      * @param data File contents.
      */
-    public CreateFileOperation(ICallback<String> listener, Context context, String libName, String fileName, byte[] data) {
+    public CreateFileOperation(IOperationCallback<String> listener, Context context, String libName, String fileName, byte[] data) {
         super(listener, context);
         mFileName = fileName;
         mLibraryName = libName;
