@@ -14,7 +14,7 @@ SDK providing Lists API.
  - sdk-files - 
 SDK providing Files API.
  - sdk-mail - 
-SDK providing Mail API. Code to be extracted from demo application.
+SDK providing Mail API.
 -	**pabloz**
  -	office365-app - 
 Simple demo app. Allows reading the list and creating the list entity.
