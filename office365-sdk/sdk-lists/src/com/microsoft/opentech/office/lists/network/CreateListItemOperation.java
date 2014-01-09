@@ -6,11 +6,11 @@ import java.net.URI;
 
 import android.content.Context;
 
-import com.microsoft.opentech.office.core.Configuration;
-import com.microsoft.opentech.office.core.network.odata.ODataOperation;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.Configuration;
 import com.microsoft.opentech.office.core.odata.Entity;
 import com.microsoft.opentech.office.core.odata.IEntityBuilder;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.odata.ODataOperation;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataCUDRequestFactory;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataEntityCreateRequest;
 import com.msopentech.odatajclient.engine.communication.response.ODataEntityCreateResponse;
@@ -28,13 +28,13 @@ public class CreateListItemOperation extends ODataOperation<ODataEntityCreateReq
 
     /**
      * Creates a new instance of {@link CreateListItemOperation} class.
-     * 
+     *
      * @param listener Callback to be invoked when operation finishes.
      * @param context Application context.
      * @param listId GUID of list to create an item.
      * @param entityBuilder Builder of entity to be created.
      */
-    public CreateListItemOperation(ICallback<Entity> listener, Context context, String listId, IEntityBuilder<Entity> entityBuilder) {
+    public CreateListItemOperation(IOperationCallback<Entity> listener, Context context, String listId, IEntityBuilder<Entity> entityBuilder) {
         super(listener, context, true);
         listGUID = listId;
         mBuilder = entityBuilder;

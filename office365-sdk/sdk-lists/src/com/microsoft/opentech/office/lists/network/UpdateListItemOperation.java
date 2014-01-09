@@ -6,11 +6,11 @@ import java.net.URI;
 
 import android.content.Context;
 
-import com.microsoft.opentech.office.core.Configuration;
-import com.microsoft.opentech.office.core.network.odata.ODataOperation;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.Configuration;
 import com.microsoft.opentech.office.core.odata.Entity;
 import com.microsoft.opentech.office.core.odata.IEntityBuilder;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.odata.ODataOperation;
 import com.msopentech.odatajclient.engine.communication.request.UpdateType;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataCUDRequestFactory;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataEntityUpdateRequest;
@@ -37,7 +37,7 @@ public class UpdateListItemOperation extends ODataOperation<ODataEntityUpdateReq
      * @param itemId Item ID.
      * @param builder Builder with fields to be updated.
      */
-    public UpdateListItemOperation(ICallback<Boolean> listener, Context context, String listGuid, int itemId, IEntityBuilder<Entity> builder) {
+    public UpdateListItemOperation(IOperationCallback<Boolean> listener, Context context, String listGuid, int itemId, IEntityBuilder<Entity> builder) {
         super(listener, context, true);
         mListGuid = listGuid;
         mItemId = itemId;

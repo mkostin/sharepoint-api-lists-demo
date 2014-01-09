@@ -5,9 +5,9 @@ import java.util.List;
 
 import android.content.Context;
 
-import com.microsoft.opentech.office.core.network.odata.ODataOperation;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
 import com.microsoft.opentech.office.core.odata.Entity;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.odata.ODataOperation;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataEntityRequest;
 import com.msopentech.odatajclient.engine.communication.request.retrieve.ODataRetrieveRequestFactory;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
@@ -26,7 +26,7 @@ public class GetListsOperation extends ODataOperation<ODataEntityRequest, List<O
      * @param listener Callback to be executed when operation finishes.
      * @param context Application context.
      */
-    public GetListsOperation(ICallback<List<Object>> listener, Context context) {
+    public GetListsOperation(IOperationCallback<List<Object>> listener, Context context) {
         super(listener, context, false);
     }
 

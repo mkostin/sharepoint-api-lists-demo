@@ -5,11 +5,11 @@ import java.net.URI;
 
 import android.content.Context;
 
-import com.microsoft.opentech.office.core.Configuration;
-import com.microsoft.opentech.office.core.network.odata.ODataOperation;
+import com.microsoft.opentech.office.core.IBuilder;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.Configuration;
 import com.microsoft.opentech.office.core.odata.Entity;
-import com.microsoft.opentech.office.core.odata.IBuilder;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.odata.ODataOperation;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataCUDRequestFactory;
 import com.msopentech.odatajclient.engine.communication.request.cud.ODataEntityCreateRequest;
 import com.msopentech.odatajclient.engine.communication.response.ODataEntityCreateResponse;
@@ -30,7 +30,7 @@ public class CreateListOperation extends ODataOperation<ODataEntityCreateRequest
      * @param context Application context.
      * @param listBuilder Builder to build a list to be created.
      */
-    public CreateListOperation(ICallback<Entity> listener, Context context, IBuilder<Entity> listBuilder) {
+    public CreateListOperation(IOperationCallback<Entity> listener, Context context, IBuilder<Entity> listBuilder) {
         super(listener, context, true);
         mListBuilder = listBuilder;
     }
