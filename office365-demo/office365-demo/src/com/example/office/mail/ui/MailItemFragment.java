@@ -17,11 +17,11 @@ import com.example.office.R;
 import com.example.office.logger.Logger;
 import com.example.office.mail.data.BoxedMailItem;
 import com.example.office.mail.data.MailConfig;
-import com.example.office.mail.data.odata.Importance;
-import com.example.office.mail.data.odata.ItemBody;
 import com.example.office.mail.storage.MailConfigPreferences;
 import com.example.office.ui.BaseFragment;
 import com.example.office.utils.DateTimeUtils;
+import com.microsoft.opentech.office.mail.data.odata.Importance;
+import com.microsoft.opentech.office.mail.data.odata.ItemBody;
 
 /**
  * Email details fragment.

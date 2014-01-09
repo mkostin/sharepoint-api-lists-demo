@@ -19,14 +19,14 @@ import android.widget.TextView;
 import com.example.office.R;
 import com.example.office.logger.Logger;
 import com.example.office.ui.BaseFragment;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
 import com.microsoft.opentech.office.core.odata.Entity;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
 import com.microsoft.opentech.office.lists.network.GetItemOperation;
 
 /**
  * Email details fragment.
  */
-public class ListItemFragment extends BaseFragment implements ICallback<Entity> {
+public class ListItemFragment extends BaseFragment implements IOperationCallback<Entity> {
 
     private Future<Entity> mGetItemFuture = null;
 

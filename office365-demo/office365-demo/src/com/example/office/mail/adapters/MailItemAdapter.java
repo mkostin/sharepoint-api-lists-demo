@@ -13,8 +13,8 @@ import android.widget.TextView;
 import com.example.office.R;
 import com.example.office.adapters.SearchableAdapter;
 import com.example.office.mail.data.BoxedMailItem;
-import com.example.office.mail.data.odata.Importance;
 import com.example.office.utils.DateTimeUtils;
+import com.microsoft.opentech.office.mail.data.odata.Importance;
 
 /**
  * Adapter for displaying MailItem in ListView

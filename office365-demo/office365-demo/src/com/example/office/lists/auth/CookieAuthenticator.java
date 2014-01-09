@@ -9,7 +9,7 @@ import java.util.List;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 import com.example.office.Constants;
-import com.microsoft.opentech.office.core.network.auth.AbstractCookieAuthenticator;
+import com.microsoft.opentech.office.core.auth.method.AbstractCookieAuthenticator;
 
 /**
  * Abstract implementation for Cookie credentials required to authorize to Office 365 online.

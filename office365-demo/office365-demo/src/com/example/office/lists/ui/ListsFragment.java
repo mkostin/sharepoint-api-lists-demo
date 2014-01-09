@@ -45,12 +45,12 @@ import com.example.office.ui.BaseActivity;
 import com.example.office.ui.IFragmentNavigator;
 import com.example.office.ui.ListFragment;
 import com.example.office.utils.Utility;
-import com.microsoft.opentech.office.core.Configuration;
-import com.microsoft.opentech.office.core.network.auth.AbstractOfficeAuthenticator;
-import com.microsoft.opentech.office.core.network.auth.ISharePointCredentials;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.Configuration;
+import com.microsoft.opentech.office.core.auth.ISharePointCredentials;
+import com.microsoft.opentech.office.core.auth.method.AbstractOfficeAuthenticator;
 import com.microsoft.opentech.office.core.odata.Entity;
 import com.microsoft.opentech.office.core.odata.Entity.Builder;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
 import com.microsoft.opentech.office.lists.network.CreateListOperation;
 import com.microsoft.opentech.office.lists.network.GetListsOperation;
 import com.microsoft.opentech.office.lists.network.RemoveListOperation;
@@ -115,7 +115,7 @@ public class ListsFragment extends ListFragment<Item, ListsAdapter> {
 
         showWorkInProgress(true, true);
 
-        new GetListsOperation(new ICallback<List<Object>>() {
+        new GetListsOperation(new IOperationCallback<List<Object>>() {
             public void onError(Throwable error) {
                 Utility.showToastNotification(getString(R.string.main_status_error));
                 showWorkInProgress(false, false);
@@ -232,7 +232,7 @@ public class ListsFragment extends ListFragment<Item, ListsAdapter> {
 
         showWorkInProgress(true, false);
 
-        new RemoveListOperation(new ICallback<Boolean>() {
+        new RemoveListOperation(new IOperationCallback<Boolean>() {
             public void onError(final Throwable error) {
                 Utility.showToastNotification("Unable to remove list: " + error.getMessage());
                 showWorkInProgress(false, false);
@@ -268,13 +268,13 @@ public class ListsFragment extends ListFragment<Item, ListsAdapter> {
         //TODO: verify if this is required.
         ((ActionBarActivity) getActivity()).supportInvalidateOptionsMenu();
     }
-    
+
     public void createList() {
 
         Builder builder = new Entity.Builder("SP.List").set("BaseTemplate", 100).set("Title", "List, created using API")
                 .set("Description", "SDK Playground");
 
-        new CreateListOperation(new ICallback<Entity>() {
+        new CreateListOperation(new IOperationCallback<Entity>() {
             public void onError(Throwable error) {
                 Utility.showToastNotification(getString(R.string.main_list_create_failure));
             }
@@ -297,7 +297,7 @@ public class ListsFragment extends ListFragment<Item, ListsAdapter> {
     public void onAddButtonClick(View button) {
         createList();
     }
-    
+
     /**
      * Show data from lists adapter.
      */

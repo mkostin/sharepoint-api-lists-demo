@@ -3,10 +3,7 @@ package com.example.office.mail.ui.box;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.example.office.Configuration;
@@ -21,18 +18,19 @@ import com.example.office.mail.actions.RemoveMailAction;
 import com.example.office.mail.data.BoxedMailItem;
 import com.example.office.mail.data.MailConfig;
 import com.example.office.mail.data.NetworkState;
-import com.example.office.mail.network.BaseOperation;
-import com.example.office.mail.network.BaseOperation.OnOperaionExecutionListener;
-import com.example.office.mail.network.MailRequestHttpOperation;
 import com.example.office.mail.storage.MailConfigPreferences;
 import com.example.office.ui.animate.actions.AnimationAction;
 import com.example.office.ui.animate.actions.AnimationAction.Direction;
 import com.example.office.utils.NetworkUtils;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.method.AbstractBasicAuthenticator;
+import com.microsoft.opentech.office.mail.data.odata.EmailMessage;
+import com.microsoft.opentech.office.mail.network.MailsRequestOperation;
 
 /**
  * 'Inbox' fragment containing logic related to managing inbox emails.
  */
-public class InboxFragment extends BoxFragment implements OnOperaionExecutionListener {
+public class InboxFragment extends BoxFragment implements IOperationCallback<List<EmailMessage>> {
 
     /**
      * Handler to process actions on UI thread when async task is finished.
@@ -81,7 +79,17 @@ public class InboxFragment extends BoxFragment implements OnOperaionExecutionLis
             NetworkState nState = NetworkUtils.getNetworkState(getActivity());
             if (nState.getWifiConnectedState() || nState.getDataState() == NetworkUtils.NETWORK_UTILS_CONNECTION_STATE_CONNECTED) {
                 showWorkInProgress(true, !hasData);
-                new MailItemsReceiveTask(getActivity()).execute(getInboxEndpoint());
+                com.microsoft.opentech.office.core.auth.Configuration.setServerBaseUrl(getInboxEndpoint());
+                com.microsoft.opentech.office.core.auth.Configuration.setAuthenticator(new AbstractBasicAuthenticator() {
+                    protected String getUsername() {
+                        return Constants.USERNAME;
+                    }
+
+                    protected String getPassword() {
+                        return Constants.PASSWORD;
+                    }
+                });
+                new MailsRequestOperation(this, getActivity()).executeAsync();
             } else {
                 Toast.makeText(getActivity(), R.string.data_connection_no_data_connection, Toast.LENGTH_LONG).show();
             }
@@ -91,37 +99,33 @@ public class InboxFragment extends BoxFragment implements OnOperaionExecutionLis
     }
 
     @Override
-    public void onExecutionComplete(BaseOperation operation, boolean executionResult) {
-        try {
-            Logger.logMessage(getClass().getSimpleName() + ".onExecutionComplete(): executionResult=" + executionResult);
-
-            if (executionResult == false) {
-                // TODO: add alert dialog here. Take care of a progress bar.
-                return;
-            }
-
-            final MailRequestHttpOperation oper = (MailRequestHttpOperation) operation;
-
-            MailConfig newConfig = new MailConfig(System.currentTimeMillis());
-            newConfig.setMails(oper.getResult());
-            MailConfigPreferences.updateConfiguration(newConfig);
-
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    showWorkInProgress(false, false);
-                    updateList((ArrayList<BoxedMailItem>) oper.getResult());
-                }
-            });
-        } catch (Exception e) {
-            Logger.logApplicationException(e, getClass().getSimpleName() + ".onExecutionComplete(): Error.");
+    public void onDone(List<EmailMessage> result) {
+        MailConfig newConfig = new MailConfig(System.currentTimeMillis());
+        final List<BoxedMailItem> boxedMails = new ArrayList<BoxedMailItem>();
+        for (EmailMessage mail : result) {
+            boxedMails.add(new BoxedMailItem(mail, UI.Screen.MAILBOX));
         }
+
+        newConfig.setMails(boxedMails);
+        MailConfigPreferences.updateConfiguration(newConfig);
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                showWorkInProgress(false, false);
+                updateList(boxedMails);
+            }
+        });
+    }
+
+    @Override
+    public void onError(Throwable error) {
+        Logger.logApplicationException(new Exception(error), getClass().getSimpleName() + ".onExecutionComplete(): Error.");
     }
 
     /**
      * Returns TEST or RELEASE version of end point to retrieve list of emails in the inbox depending on {@link Configuration#DEBUG}
      * constant value.
-     *
+     * 
      * @return URL to retrieve list of emails in the inbox.
      */
     private String getInboxEndpoint() {
@@ -131,36 +135,4 @@ public class InboxFragment extends BoxFragment implements OnOperaionExecutionLis
             return Constants.MAIL_MESSAGES;
         }
     }
-
-    /**
-     * Task that requests inbox emails from remote endpoint, parses them and shows to the user
-     */
-    public class MailItemsReceiveTask extends AsyncTask<String, Void, List<BoxedMailItem>> {
-
-        /**
-         * Application context
-         */
-        private Context context;
-
-        /**
-         * default constructor.
-         *
-         * @param context Application context.
-         */
-        public MailItemsReceiveTask(Context context) {
-            super();
-            this.context = context;
-        }
-
-        @Override
-        protected List<BoxedMailItem> doInBackground(String... serverUrl) {
-            if (serverUrl.length != 1 || TextUtils.isEmpty(serverUrl[0])) return null;
-
-            MailRequestHttpOperation oper = new MailRequestHttpOperation(InboxFragment.this, serverUrl[0], context);
-            oper.execute();
-            return oper.getResult();
-        }
-
-    }
-
 }

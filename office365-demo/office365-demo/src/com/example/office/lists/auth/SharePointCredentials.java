@@ -1,6 +1,6 @@
 package com.example.office.lists.auth;
 
-import com.microsoft.opentech.office.core.network.auth.SharePointCredentialsImpl;
+import com.microsoft.opentech.office.core.auth.SharePointCredentialsImpl;
 
 /**
  * Stores credentials required to authenticate to Office 365 Online.

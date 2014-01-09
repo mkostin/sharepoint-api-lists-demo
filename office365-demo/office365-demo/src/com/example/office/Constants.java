@@ -37,7 +37,7 @@ public class Constants {
     /**
      * TEST Endpoint to retrieve list current messages from the inbox.
      */
-    public static final String MAIL_MESSAGES_TEST = "https://www.cubby.com/pl/exhb-7841.Me.Inbox.Messages.json/_003e11efd4ac4691aa3b639796f630ee";
+    public static final String MAIL_MESSAGES_TEST = "https://sdfpilot.outlook.com/ews/";
 
     /**
      * TEST Endpoint to retrieve content of inbox folder
@@ -85,7 +85,15 @@ public class Constants {
      */
     public static final String COOKIE_RT_FA = "rtFa=btHSSMLPPaqSjpN1ZN8U91B/V2iaHSc3ubUJtmn8E00D2zONyhkloc9dyL0wIPDbn+OkAsENZfTSseRlQ5eRfV2c53qjNPrHOOf9v63fOcLYYRgAcutqGjhPG3OzBqWI4vFbhT/CmR2bGSEPEuo79oDQRJzwLPgE7Zfiyla0tyYp3riPudFeDYwdedWvlsUsU9wCnR2UQsOPgr/jhDta/qxuJ+0uDdIln+DyX58GSrckMPpi97qkmTvuYAGhtt3CxCZFEXBb5bfIeCMNDh3iTq8xHT54UMZfw4Ea8Ohm29PDAe9ywinLpoLj+6oWYLNkQ6UEGRDTLsdSBTNaky6Q8nMlwgx30SjhX8JH8/unQIvjge/KLPypMVxEDom4CUe9IAAAAA==";
 
+    /**
+     * Login for authorization on mails endpoint.
+     */
+    public static final String USERNAME = "odata1@CTSTest.ccsctp.net";
 
+    /**
+     * Password for authorization on mails endpoint.
+     */
+    public static final String PASSWORD = "07Apples";
 
     /**
      * Application logging TAG.

@@ -2,8 +2,9 @@ package com.example.office.mail.data;
 
 import com.example.office.Constants.UI;
 import com.example.office.Constants.UI.Screen;
-import com.example.office.mail.data.odata.EmailMessage;
-import com.example.office.mail.data.odata.Item;
+import com.microsoft.opentech.office.mail.data.odata.EmailMessage;
+import com.microsoft.opentech.office.mail.data.odata.Importance;
+import com.microsoft.opentech.office.mail.data.odata.Item;
 
 /**
  * Represents mail item assignable to a specific box.
@@ -62,6 +63,16 @@ public class BoxedMailItem extends EmailMessage {
      */
     public BoxedMailItem setBox(UI.Screen box) {
         this.mBox = box;
+        return this;
+    }
+    
+    public BoxedMailItem setImportance(Importance importance) {
+        this.mImportance = importance;
+        return this;
+    }
+    
+    public BoxedMailItem setIsRead(boolean isRead) {
+        this.mIsRead = isRead;
         return this;
     }
 }

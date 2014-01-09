@@ -42,9 +42,9 @@ import com.example.office.lists.data.Item;
 import com.example.office.logger.Logger;
 import com.example.office.ui.ListFragment;
 import com.example.office.utils.Utility;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
 import com.microsoft.opentech.office.core.odata.Entity;
 import com.microsoft.opentech.office.core.odata.Entity.Builder;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
 import com.microsoft.opentech.office.files.network.CreateFileOperation;
 import com.microsoft.opentech.office.lists.network.CreateListItemOperation;
 import com.microsoft.opentech.office.lists.network.GetItemOperation;
@@ -55,7 +55,7 @@ import com.microsoft.opentech.office.lists.network.UpdateListItemOperation;
 /**
  * Inbox fragment containing logic related to managing inbox emails.
  */
-public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implements ICallback<String> {
+public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implements IOperationCallback<String> {
 
     /**
      * Request code for the operation of image retrieval either from gallery or from camera.
@@ -164,7 +164,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
 
         showWorkInProgress(true, true);
 
-        mGetListItemsFuture = new GetListItemsOperation(new ICallback<List<Object>>() {
+        mGetListItemsFuture = new GetListItemsOperation(new IOperationCallback<List<Object>>() {
             public void onError(final Throwable error) {
                 Utility.showToastNotification("Unable to get list items: " + error.getMessage());
                 showWorkInProgress(false, false);
@@ -204,7 +204,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
 
             showWorkInProgress(true, false);
 
-            new GetItemOperation(new ICallback<Entity>() {
+            new GetItemOperation(new IOperationCallback<Entity>() {
 
                 @Override
                 public void onError(final Throwable error) {
@@ -238,7 +238,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
 
             showWorkInProgress(true, false);
 
-            new RemoveListItemOperation(new ICallback<Boolean>() {
+            new RemoveListItemOperation(new IOperationCallback<Boolean>() {
                 public void onError(Throwable error) {
                     Utility.showToastNotification("Unable to remove item");
                     showWorkInProgress(false, false);
@@ -282,7 +282,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
                     showWorkInProgress(true, false);
 
                     // Push it to the selected list
-                    new CreateListItemOperation(new ICallback<Entity>() {
+                    new CreateListItemOperation(new IOperationCallback<Entity>() {
                         @Override
                         public void onError(Throwable error) {
                             Utility.showToastNotification(getString(R.string.main_item_create_failure));
@@ -473,7 +473,7 @@ public class ListItemsFragment extends ListFragment<Item, ListsAdapter> implemen
                             .set("Url", item.getImageUrl().toString()).build();
                     Builder builder = new Builder().set("Title", item.getTitle()).set("Image", image);
 
-                    new UpdateListItemOperation(new ICallback<Boolean>() {
+                    new UpdateListItemOperation(new IOperationCallback<Boolean>() {
                         public void onError(Throwable error) {
                             Utility.showToastNotification("Failure on update");
                             showWorkInProgress(false, false);

@@ -1,7 +1,7 @@
 package com.example.office.lists.events;
 
 import com.example.office.events.AbstractEvent;
-import com.microsoft.opentech.office.core.network.auth.ISharePointCredentials;
+import com.microsoft.opentech.office.core.auth.ISharePointCredentials;
 
 
 /**

@@ -1,5 +1,6 @@
 package com.example.office.adapters;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -38,6 +39,16 @@ public class SlidingDrawerAdapter extends ArrayAdapter<Screen> {
      * List of delimiters positions in adapter.
      */
     private Collection<Integer> mDelimitersPositions;
+    
+    /**
+     * View type for ordinal view.
+     */
+    private final int VIEW_TYPE_ITEM = 0;
+    
+    /**
+     * View type for delimiter.
+     */
+    private final int VIEW_TYPE_DELIMITER = 1;
 
     /**
      * Default constructor.
@@ -45,18 +56,28 @@ public class SlidingDrawerAdapter extends ArrayAdapter<Screen> {
      * @param context Application context.
      * @param itemResource Drawer item resource id.
      */
-    public SlidingDrawerAdapter(Context context, int itemResource, int delimResource, Collection<Integer> delimitersPositions) {
+    public SlidingDrawerAdapter(Context context, int itemResource, int delimResource) {
         super(context, itemResource);
         try {
             mInflater = LayoutInflater.from(context);
             mItemResource = itemResource;
             mDelimResource = delimResource;
-            mDelimitersPositions = delimitersPositions;
+            mDelimitersPositions = new ArrayList<Integer>();
 
             for (Screen screen : Screen.values()) {
                 if (screen.in(ScreenGroup.DRAWER)) {
                     add(screen);
                 }
+            }
+
+            int delimPos = 0;
+            for (ScreenGroup group : ScreenGroup.values()) {
+                if (group.equals(ScreenGroup.DRAWER)) {
+                    continue;
+                }
+                delimPos = group.getMembers().size() + delimPos;
+                mDelimitersPositions.add(delimPos);
+                ++delimPos;
             }
 
         } catch (Exception e) {
@@ -72,20 +93,35 @@ public class SlidingDrawerAdapter extends ArrayAdapter<Screen> {
 
     @Override
     public Screen getItem(int position) {
-        return mDelimitersPositions.contains(position)? null : super.getItem(getRealPosition(position));
+        return mDelimitersPositions.contains(position) ? null : super.getItem(getRealPosition(position));
     }
-    
+
     @Override
     public long getItemId(int position) {
         return super.getItemId(getRealPosition(position));
     }
-    
+
     @Override
     public int getCount() {
         // number of views = number of items (stored in superclass) + number of delimiters
         return super.getCount() + mDelimitersPositions.size();
     }
     
+    @Override
+    public boolean areAllItemsEnabled() {
+        return false;
+    }
+    
+    @Override
+    public int getItemViewType(int position) {
+        return mDelimitersPositions.contains(position) ? VIEW_TYPE_DELIMITER : VIEW_TYPE_ITEM;
+    }
+    
+    @Override
+    public int getViewTypeCount() {
+        return 2;
+    }
+
     @Override
     public boolean isEnabled(int position) {
         return !mDelimitersPositions.contains(position);
@@ -98,14 +134,18 @@ public class SlidingDrawerAdapter extends ArrayAdapter<Screen> {
             if (convertView == null) {
                 holder = new ItemHolder();
 
-                if (mDelimitersPositions.contains(position)) {
-                    convertView = mInflater.inflate(mDelimResource, null);
-                } else {
-                    convertView = mInflater.inflate(mItemResource, null);
+                switch (getItemViewType(position)) {
+                    case VIEW_TYPE_ITEM:
+                        convertView = mInflater.inflate(mItemResource, null);
+                        
+                        holder.icon = (ImageView) convertView.findViewById(R.id.drawer_item_icon);
+                        holder.title = (TextView) convertView.findViewById(R.id.drawer_item_title);
+                        holder.count = (TextView) convertView.findViewById(R.id.drawer_item_count);
+                        break;
 
-                    holder.icon = (ImageView) convertView.findViewById(R.id.drawer_item_icon);
-                    holder.title = (TextView) convertView.findViewById(R.id.drawer_item_title);
-                    holder.count = (TextView) convertView.findViewById(R.id.drawer_item_count);
+                    case VIEW_TYPE_DELIMITER:
+                        convertView = mInflater.inflate(mDelimResource, null);
+                        break;
                 }
 
                 convertView.setTag(holder);
@@ -119,7 +159,7 @@ public class SlidingDrawerAdapter extends ArrayAdapter<Screen> {
                 Drawable icon = screen.getIcon(getContext());
 
                 String count = "";
-                if (title.equals(getContext().getString(R.string.screens_mailbox))) {
+                if (title.equals(Screen.MAILBOX.getName(getContext()))) {
                     // TODO load mailbox items count from local persistence
                 }
                 // TODO do the same for Later, Archive, Trash and sent screens
@@ -133,7 +173,7 @@ public class SlidingDrawerAdapter extends ArrayAdapter<Screen> {
 
         return convertView;
     }
-    
+
     /**
      * Returns a real screen position considering delimiters.
      * 
@@ -148,7 +188,7 @@ public class SlidingDrawerAdapter extends ArrayAdapter<Screen> {
                 ++delimsBefore;
             }
         }
-        
+
         return position - delimsBefore;
     }
 }

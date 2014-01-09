@@ -1,7 +1,5 @@
 package com.example.office.ui;
 
-import java.util.ArrayList;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -119,9 +117,8 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
-        //TODO: fix delimiter passing.
         SlidingDrawerAdapter drawerAdapter = new SlidingDrawerAdapter(OfficeApplication.getContext(), R.layout.drawer_list_item,
-                R.layout.drawer_delimiter, new ArrayList<Integer>() {{ add(7); add(9); add(11); }});
+                R.layout.drawer_delimiter);
         mDrawerList.setAdapter(drawerAdapter);
 
         mDrawerList.setOnItemClickListener(new ListView.OnItemClickListener() {
@@ -130,7 +127,7 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
                 try {
                     Screen[] drawerScreens = ScreenGroup.DRAWER.getMembers().toArray(new Screen[0]);
                     Screen currentScreen = DEFAULT_BOX;
-
+                    
                     // use id instead of position here because some positions used by delimiters, id contains real index of clicked item
                     if (drawerScreens != null && drawerScreens.length - 1 >= id) {
                         currentScreen = drawerScreens[(int) id];
@@ -289,7 +286,7 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
 
     /**
      * Choose one of the available screens to display (via appropriate Fragment).
-     *
+     * 
      * @param newScreen Screen to be shown.
      */
     private void switchScreen(UI.Screen newScreen) {
@@ -423,7 +420,7 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
 
     /**
      * Manages tab interaction and content.
-     *
+     * 
      * @param <T> Class extending {@link Fragment} to be managed as a tab content.
      */
     private static class TabListener<T extends Fragment> implements ActionBar.TabListener {
@@ -434,7 +431,7 @@ public class Office365DemoActivity extends BaseActivity implements SearchView.On
 
         /**
          * Constructor used each time a new tab is created.
-         *
+         * 
          * @param activity The host Activity, used to instantiate the fragment
          * @param tag The identifier tag for the fragment
          * @param clazz The fragment's Class, used to instantiate the fragment
