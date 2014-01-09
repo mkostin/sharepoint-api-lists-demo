@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.odata.async;
+package com.microsoft.opentech.office.core.action.async;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -11,26 +11,28 @@ import android.os.Looper;
 
 /**
  * Implementation of a <i>listenable</i> {@link Future}.
+ *
+ * @param <V> Future result.
  */
-public class OfficeFuture<V> implements Future<V> {
+class OfficeFuture<V> implements Future<V> {
 	boolean mIsCancelled = false;
 	boolean mIsDone = false;
 	private V mResult = null;
 	private Object mDoneLock = new Object();
 	private Object mErrorLock = new Object();
 	private Throwable mError = null;
-	private ICallback<V> mCallback;
+	private IOperationCallback<V> mCallback;
 
 	private Semaphore mResultSemaphore = new Semaphore(0);
 
 	private Handler handler = new Handler(Looper.getMainLooper());
-	
+
 	/**
 	 * Creates a new instance of OfficeFuture class.
-	 * 
+	 *
 	 * @param callback Callback to be invoked when future ends.
 	 */
-	public OfficeFuture(ICallback<V> callback) {
+	public OfficeFuture(IOperationCallback<V> callback) {
 	    mCallback = callback;
 	}
 
@@ -101,7 +103,7 @@ public class OfficeFuture<V> implements Future<V> {
 
 	/**
 	 * Notifies listening object that an error occurred during operation execution.
-	 * 
+	 *
 	 * @param error An error was occurred.
 	 */
 	void triggerError(Throwable error) {
@@ -116,7 +118,7 @@ public class OfficeFuture<V> implements Future<V> {
 	}
 
 	/**
-	 * Invokes {@link ICallback#onDone(Object)} callback on a UI thread.
+	 * Invokes {@link IOperationCallback#onDone(Object)} callback on a UI thread.
 	 *
 	 * @param result Execution result.
 	 */
@@ -130,7 +132,7 @@ public class OfficeFuture<V> implements Future<V> {
     }
 
     /**
-     * Invokes {@link ICallback#onError(Throwable)} callback on a UI thread.
+     * Invokes {@link IOperationCallback#onError(Throwable)} callback on a UI thread.
      *
      * @param error Execution error.
      */

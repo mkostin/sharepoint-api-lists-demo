@@ -1,7 +1,6 @@
-package com.microsoft.opentech.office.core.network.odata;
+package com.microsoft.opentech.office.core.odata;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.List;
 
@@ -10,11 +9,10 @@ import org.apache.http.client.ClientProtocolException;
 import android.content.Context;
 import android.util.Pair;
 
-import com.microsoft.opentech.office.core.Configuration;
-import com.microsoft.opentech.office.core.network.NetworkException;
-import com.microsoft.opentech.office.core.network.NetworkOperation;
-import com.microsoft.opentech.office.core.odata.Entity;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.Configuration;
+import com.microsoft.opentech.office.core.net.NetworkException;
+import com.microsoft.opentech.office.core.net.NetworkOperation;
 import com.msopentech.odatajclient.engine.communication.request.ODataBasicRequestImpl;
 import com.msopentech.odatajclient.engine.communication.request.ODataRequest;
 import com.msopentech.odatajclient.engine.communication.response.ODataResponse;
@@ -85,7 +83,7 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
      * @param context Application context.
      * @param requiresDigest Determines should current operation set X-RequestDigest header for performing.
      */
-    public ODataOperation(ICallback<RESULT> listener, Context context, boolean requiresDigest) {
+    public ODataOperation(IOperationCallback<RESULT> listener, Context context, boolean requiresDigest) {
         super(listener, context);
         mRequiresDigest = requiresDigest;
     }
@@ -188,12 +186,16 @@ public abstract class ODataOperation<REQUEST extends ODataBasicRequestImpl<? ext
         }
     }
 
+    /**
+     * Utility method to encapsulate inner type.
+     *
+     * @param entity Entity to convert.
+     *
+     * @return ODataEntity instance converted from {@link Entity}.
+     */
     protected static ODataEntity getODataEntity(Entity entity) {
         try {
-            //TODO: fix this by limiting access level w/o reflection
-            Method method = Entity.class.getDeclaredMethod("getODataEntity", entity.getClass());
-            method.setAccessible(true);
-            return (ODataEntity) method.invoke(null, entity);
+            return Entity.getODataEntity(entity);
         } catch (Exception e) {
             return null;
         }

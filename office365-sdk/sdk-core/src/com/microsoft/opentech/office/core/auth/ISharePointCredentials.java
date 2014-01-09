@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.network.auth;
+package com.microsoft.opentech.office.core.auth;
 
 /**
  * Interface for a class providing a set of resources required to access SharePoint.

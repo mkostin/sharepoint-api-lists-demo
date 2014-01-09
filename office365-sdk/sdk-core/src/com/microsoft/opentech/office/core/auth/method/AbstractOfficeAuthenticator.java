@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.network.auth;
+package com.microsoft.opentech.office.core.auth.method;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -6,13 +6,14 @@ import org.apache.http.client.methods.HttpUriRequest;
 import android.app.Activity;
 import android.text.TextUtils;
 
-import com.microsoft.opentech.office.core.network.NetworkException;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.ISharePointCredentials;
+import com.microsoft.opentech.office.core.net.NetworkException;
 
 /**
  * Abstract implementation for credentials required to authorize to Office 365 online.
  */
-public abstract class AbstractOfficeAuthenticator implements IAuthenticator, ICallback<String> {
+public abstract class AbstractOfficeAuthenticator implements IAuthenticator, IOperationCallback<String> {
 
     protected abstract ISharePointCredentials getCredentials();
 
@@ -64,7 +65,7 @@ public abstract class AbstractOfficeAuthenticator implements IAuthenticator, ICa
         if (!TextUtils.isEmpty(mCredentials.getAccessCode())) {
             try {
                 // We got the access code, now going for our final goal - the token.
-                new AccessTokenOperation(new ICallback<String>() {
+                new AccessTokenOperation(new IOperationCallback<String>() {
                     @Override
                     public void onDone(String result) {
                         mCredentials.setToken(result);

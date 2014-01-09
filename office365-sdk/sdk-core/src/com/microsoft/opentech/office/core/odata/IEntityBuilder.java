@@ -1,5 +1,7 @@
 package com.microsoft.opentech.office.core.odata;
 
+import com.microsoft.opentech.office.core.IBuilder;
+
 
 /**
  * Provides an interface to build an Entity.

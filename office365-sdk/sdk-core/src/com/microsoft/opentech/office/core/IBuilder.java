@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.odata;
+package com.microsoft.opentech.office.core;
 
 /**
  * Provides common interface for constructing objects.

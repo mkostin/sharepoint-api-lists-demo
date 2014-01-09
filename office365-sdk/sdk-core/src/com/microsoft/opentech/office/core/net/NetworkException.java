@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.network;
+package com.microsoft.opentech.office.core.net;
 
 
 /**

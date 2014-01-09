@@ -1,17 +1,17 @@
-package com.microsoft.opentech.office.core.network.auth;
+package com.microsoft.opentech.office.core.auth;
 
 import java.net.URI;
 
 import org.apache.http.client.methods.HttpUriRequest;
 
-import com.microsoft.opentech.office.core.Configuration;
+import com.microsoft.opentech.office.core.auth.method.IAuthenticator;
 import com.msopentech.odatajclient.engine.client.http.DefaultHttpUriRequestFactory;
 import com.msopentech.odatajclient.engine.client.http.HttpMethod;
 
 /**
  * Default implementation of request authentication factory.
  */
-public class DefaultRequestAuthenticationFactory extends DefaultHttpUriRequestFactory {
+class DefaultRequestAuthenticationFactory extends DefaultHttpUriRequestFactory {
 
     @Override
     public HttpUriRequest createHttpUriRequest(final HttpMethod method, final URI uri) {

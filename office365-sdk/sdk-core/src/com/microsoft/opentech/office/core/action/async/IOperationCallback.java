@@ -1,9 +1,9 @@
-package com.microsoft.opentech.office.core.odata.async;
+package com.microsoft.opentech.office.core.action.async;
 
 /**
  * Provides ability to user to set listeners for operation completion.
  */
-public interface ICallback<RESULT> {
+public interface IOperationCallback<RESULT> {
 
     /**
      * Invoked when operation finished successfully.

@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.network.odata;
+package com.microsoft.opentech.office.core.odata;
 
 import java.net.URI;
 import java.util.List;
@@ -9,10 +9,9 @@ import org.apache.http.client.methods.HttpUriRequest;
 import android.content.Context;
 import android.util.Pair;
 
-import com.microsoft.opentech.office.core.Configuration;
-import com.microsoft.opentech.office.core.network.HttpOperation;
-import com.microsoft.opentech.office.core.odata.Entity;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.Configuration;
+import com.microsoft.opentech.office.core.net.HttpOperation;
 
 /**
  * Retrieves request digest to sign an operation.
@@ -27,11 +26,11 @@ public class DigestRequestOperation extends HttpOperation {
 
     /**
      * Creates a new instance of {@link DigestRequestOperation} class.
-     * 
+     *
      * @param listener Callback to be executed when operation finishes.
      * @param context Application context.
      */
-    public DigestRequestOperation(ICallback<String> listener, Context context) {
+    public DigestRequestOperation(IOperationCallback<String> listener, Context context) {
         super(listener, context);
     }
 

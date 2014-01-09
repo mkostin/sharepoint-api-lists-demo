@@ -1,18 +1,18 @@
-package com.microsoft.opentech.office.core.network.auth;
+package com.microsoft.opentech.office.core.auth;
 
 import java.net.URI;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-import com.microsoft.opentech.office.core.Configuration;
+import com.microsoft.opentech.office.core.auth.method.IAuthenticator;
 import com.msopentech.odatajclient.engine.client.http.DefaultHttpClientFactory;
 import com.msopentech.odatajclient.engine.client.http.HttpMethod;
 
 /**
  * Default implementation of authentication factory.
  */
-public class DefaultAuthenticationFactory extends DefaultHttpClientFactory {
+class DefaultAuthenticationFactory extends DefaultHttpClientFactory {
 
     /**
      * Creates a new instance of {@link DefaultAuthenticationFactory} class.

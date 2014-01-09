@@ -1,22 +1,23 @@
 /**
  *
  */
-package com.microsoft.opentech.office.core.network;
+package com.microsoft.opentech.office.core.net;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import org.apache.http.client.methods.HttpUriRequest;
 
 import android.content.Context;
 import android.util.Pair;
 
-import com.microsoft.opentech.office.core.odata.async.ICallback;
-import com.microsoft.opentech.office.core.odata.async.OfficeFuture;
-import com.microsoft.opentech.office.core.odata.async.OperationAsyncTask;
+import com.microsoft.opentech.office.core.action.BaseOperation;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.action.async.OperationAsyncTask;
 
 /**
  * Implements standard HTTP operation. Has common fields for all operations.
@@ -42,7 +43,7 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
     protected static final String NTLM_HTTP_AUTHENTICATION_SCHEME_NAME = "ntlm";
 
     protected static final String LOCALHOST_DOMAIN_VALUE = "localhost";
-    
+
     protected CallbackWrapper mCallbackWrapper;
 
     /**
@@ -60,7 +61,7 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      *
      * @param listener Listener to get notifications when operation will be completed.
      */
-    public NetworkOperation(ICallback<RESULT> listener) {
+    public NetworkOperation(IOperationCallback<RESULT> listener) {
         this(listener, null);
     }
 
@@ -70,7 +71,7 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      * @param listener Listener to get notifications when operation will be completed.
      * @param context Application context.
      */
-    public NetworkOperation(ICallback<RESULT> listener, Context context) {
+    public NetworkOperation(IOperationCallback<RESULT> listener, Context context) {
         super(listener);
         this.mContext = context;
         mCallbackWrapper = new CallbackWrapper(false);
@@ -96,21 +97,20 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      */
     @Override
     public abstract RESULT execute() throws RuntimeException, IOException;
-    
+
     /**
      * Executes operation asynchronously.
-     * 
+     *
      * @return Future with given operation.
      */
     @SuppressWarnings("unchecked")
-    public OfficeFuture<RESULT> executeAsync() {
-        OfficeFuture<RESULT> future = new OfficeFuture<RESULT>(getListener());
-        OperationAsyncTask<RESULT> task = new OperationAsyncTask<RESULT>(future);
+    public Future<RESULT> executeAsync() {
+        OperationAsyncTask<RESULT> task = new OperationAsyncTask<RESULT>(getListener());
         task.execute(this);
         mCallbackWrapper.setAsyncMode(true);
-        return future;
+        return task.getFuture();
     }
-    
+
     /**
      * Retrieves response.
      *
@@ -141,36 +141,36 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
      * @throws RuntimeException when error occurred during response handling.
      */
     protected abstract boolean handleServerResponse(RESPONSE response) throws IOException;
-    
+
     /**
      * Wraps callback to avoid checking if current operation is running sync/async.
      * This class is not static since it makes sense only in operation context.
      */
     protected class CallbackWrapper {
-        
+
         /**
          * Asynchrony flag.
          */
         private boolean mIsAsync;
-        
+
         /**
          * Wrapped callback.
          */
-        private ICallback<RESULT> mCallback;
-        
+        private IOperationCallback<RESULT> mCallback;
+
         /**
          * Constructor.
-         * 
+         *
          * @param isAsync Indicates if current operation is being executed in sync or async mode.
          */
         public CallbackWrapper(boolean isAsync) {
             this.mCallback = NetworkOperation.this.getListener();
             this.mIsAsync = isAsync;
         }
-        
+
         /**
          * Invokes callback's onDone method if necessary.
-         * 
+         *
          * @param result Parameter passed to callback.
          */
         public void onDone(RESULT result) {
@@ -178,10 +178,10 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
                 mCallback.onDone(result);
             }
         }
-        
+
         /**
          * Invokes callback's onError method if necessary.
-         * 
+         *
          * @param error Parameter passed to callback.
          */
         public void onError(Throwable error) {
@@ -189,10 +189,10 @@ public abstract class NetworkOperation<REQUEST, RESPONSE, RESULT> extends BaseOp
                 mCallback.onError(error);
             }
         }
-        
+
         /**
-         * Sets asynchrony mode. 
-         * 
+         * Sets asynchrony mode.
+         *
          * @param isAsync New value.
          */
         public void setAsyncMode(boolean isAsync) {

@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.network.auth;
+package com.microsoft.opentech.office.core.auth;
 
 import java.io.Serializable;
 

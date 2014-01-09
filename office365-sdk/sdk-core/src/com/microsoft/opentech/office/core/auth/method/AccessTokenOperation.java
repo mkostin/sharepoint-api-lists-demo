@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.network.auth;
+package com.microsoft.opentech.office.core.auth.method;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -14,8 +14,9 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.util.Pair;
 
-import com.microsoft.opentech.office.core.network.HttpOperation;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.ISharePointCredentials;
+import com.microsoft.opentech.office.core.net.HttpOperation;
 
 /**
  * Operation retrieves access token for OAuth authentication.
@@ -35,7 +36,7 @@ class AccessTokenOperation extends HttpOperation {
      * @param context Application context.
      * @param creds Authentication credentials.
      */
-    public AccessTokenOperation(ICallback<String> listener, Context context, ISharePointCredentials creds) {
+    public AccessTokenOperation(IOperationCallback<String> listener, Context context, ISharePointCredentials creds) {
         super(listener, context);
         mCreds = creds;
     }

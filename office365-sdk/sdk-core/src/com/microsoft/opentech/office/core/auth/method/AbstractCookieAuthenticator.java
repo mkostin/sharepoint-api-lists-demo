@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.network.auth;
+package com.microsoft.opentech.office.core.auth.method;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
-import com.microsoft.opentech.office.core.network.NetworkException;
+import com.microsoft.opentech.office.core.net.NetworkException;
 
 /**
  * Abstract implementation for credentials required to authorize using cookies.

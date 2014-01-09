@@ -1,12 +1,14 @@
-package com.microsoft.opentech.office.core.odata.async;
+package com.microsoft.opentech.office.core.action.async;
+
+import java.util.concurrent.Future;
 
 import android.os.AsyncTask;
 
-import com.microsoft.opentech.office.core.network.BaseOperation;
+import com.microsoft.opentech.office.core.action.BaseOperation;
 
 /**
  * Runs given operation asynchronously and sets its result to given {@link OfficeFuture}
- * 
+ *
  * @param <R> Result of operation.
  */
 public class OperationAsyncTask<R> extends AsyncTask<BaseOperation<R>, Void, Void> {
@@ -18,15 +20,24 @@ public class OperationAsyncTask<R> extends AsyncTask<BaseOperation<R>, Void, Voi
 
     /**
      * Creates a new instance of {@link OperationAsyncTask}
-     * 
-     * @param future Future to set result of operation.
+     *
+     * @param callback Callback to be invoked when task is finished.
      */
-    public OperationAsyncTask(OfficeFuture<R> future) throws IllegalArgumentException {
-        if (future == null) {
-            throw new IllegalArgumentException("future cannot be null");
+    public OperationAsyncTask(IOperationCallback<R> callback) throws IllegalArgumentException {
+        if (callback == null) {
+            throw new IllegalStateException("Callback cannot be null");
         }
-        
-        mFuture = future;
+
+        mFuture = new OfficeFuture<R>(callback);
+    }
+
+    /**
+     * Returns {@link Future} of this async task.
+     *
+     * @return {@link Future} of this async task.
+     */
+    public Future<R> getFuture() {
+        return mFuture;
     }
 
     @Override

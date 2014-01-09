@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.network;
+package com.microsoft.opentech.office.core.net;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,7 +40,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Pair;
 
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
 
 /**
  * Implements standard HTTP operation using Apache HTTP components. Provides fields for all operations.
@@ -64,7 +64,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
      * 
      * @param listener Listener to get notifications when operation will be completed.
      */
-    public HttpOperation(ICallback<String> listener) {
+    public HttpOperation(IOperationCallback<String> listener) {
         super(listener);
     }
 
@@ -74,7 +74,7 @@ public abstract class HttpOperation extends NetworkOperation<HttpRequest, String
      * @param listener Listener to get notifications when operation will be completed.
      * @param context Application context.
      */
-    public HttpOperation(ICallback<String> listener, Context context) {
+    public HttpOperation(IOperationCallback<String> listener, Context context) {
         super(listener, context);
     }
 

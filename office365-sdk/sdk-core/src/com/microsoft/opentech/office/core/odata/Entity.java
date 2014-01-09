@@ -16,6 +16,7 @@ import com.msopentech.odatajclient.engine.data.ODataCollectionValue;
 import com.msopentech.odatajclient.engine.data.ODataComplexValue;
 import com.msopentech.odatajclient.engine.data.ODataEntity;
 import com.msopentech.odatajclient.engine.data.ODataFactory;
+import com.msopentech.odatajclient.engine.data.ODataLink;
 import com.msopentech.odatajclient.engine.data.ODataPrimitiveValue;
 import com.msopentech.odatajclient.engine.data.ODataProperty;
 import com.msopentech.odatajclient.engine.data.ODataReader;
@@ -35,6 +36,8 @@ public class Entity implements Serializable {
     private static final String TYPE_KEY = "type";
 
     private static final String SHAREPOINT_ROOT_OBJECT_KEY = "d";
+    
+    private static final String NAVIGATION_LINK_SUFFIX = "@odata.navigationLink";
 
     protected final TreeMap<String, Object> mFields;
 
@@ -50,7 +53,7 @@ public class Entity implements Serializable {
 
     /**
      * Gets an object related to specified name.
-     * 
+     *
      * @param name Name of field to be retrieved.
      * @return Object related to specified name.
      * @throws IllegalArgumentException Thrown when given name is not found in current {@link Entity} instance.
@@ -65,7 +68,7 @@ public class Entity implements Serializable {
 
     /**
      * Gets an object related to specified name from metadata.
-     * 
+     *
      * @param name Name of field to be retrieved.
      * @return Object related to specified name.
      * @throws IllegalArgumentException Thrown when given name is not found in metadata of current {@link Entity} instance.
@@ -80,7 +83,7 @@ public class Entity implements Serializable {
 
     /**
      * Returns an object to iterate through all fields.
-     * 
+     *
      * @return Iterator on fields.
      */
     public Iterator<Pair<String, Object>> iterator() {
@@ -105,7 +108,7 @@ public class Entity implements Serializable {
 
     /**
      * Creates a builder from json string.
-     * 
+     *
      * @param json JSON string to create builder from.
      * @return Builder for Entity.
      * @throws Exception Thrown when an error occurred during json parsing or Entity building.
@@ -121,19 +124,22 @@ public class Entity implements Serializable {
         } else if (json instanceof ODataEntity) {
             odataEntity = (ODataEntity) json;
         } else {
-            throw new IllegalArgumentException("Entity.Builder.from(): you must pass a string containing correct JSON to this method");
+            throw new IllegalArgumentException("Entity.from(): you must pass a string containing correct JSON to this method");
         }
 
-        ODataComplexValue properties;
+        Iterator<ODataProperty> properties;
+        Iterator<ODataLink> links;
         // if this json retrieved from sharepoint, all payload is located in "d" object
         if (odataEntity.getProperties().size() == 1 && odataEntity.getProperties().get(0).getName().equals(SHAREPOINT_ROOT_OBJECT_KEY)) {
-            properties = odataEntity.getProperty(SHAREPOINT_ROOT_OBJECT_KEY).getComplexValue();
+            properties = odataEntity.getProperty(SHAREPOINT_ROOT_OBJECT_KEY).getComplexValue().iterator();
         } else {
-            throw new UnsupportedOperationException("Parsing of non-sharepoint json is not implemented yet");
+            properties = odataEntity.getProperties().iterator();            
         }
+        links = odataEntity.getNavigationLinks().iterator();
 
         Builder builder = new Builder();
-        for (ODataProperty property : properties) {
+        while (properties.hasNext()) {
+            ODataProperty property = properties.next();
             if (METADATA_KEY.equals(property.getName())) {
                 for (ODataProperty meta : property.getComplexValue()) {
                     builder.setMeta(meta.getName(), fromODataObject(meta.getValue()));
@@ -142,18 +148,23 @@ public class Entity implements Serializable {
                 builder.set(property.getName(), fromODataObject(property.getValue()));
             }
         }
+        
+        while (links.hasNext()) {
+            ODataLink link = links.next();
+            builder.set(link.getName() + NAVIGATION_LINK_SUFFIX, link.getLink().toString());
+        }
 
         return builder;
     }
 
     /**
      * Converts {@link Entity} to {@link ODataEntity} instance.
-     * 
+     *
      * @param entity Entity to be converted.
      * @return {@link ODataEntity} instance.
      * @throws IllegalArgumentException Thrown when unable to convert an entity.
      */
-    private static final ODataEntity getODataEntity(Entity entity) throws IllegalArgumentException {
+    static final ODataEntity getODataEntity(Entity entity) throws IllegalArgumentException {
         ODataEntity odataEntity = ODataFactory.newEntity("");
         Iterator<Pair<String, Object>> iterator = entity.iterator();
         while (iterator.hasNext()) {
@@ -166,7 +177,7 @@ public class Entity implements Serializable {
 
     /**
      * Converts given object to {@link ODataValue}.
-     * 
+     *
      * @param value Object to be converted.
      * @return {@link ODataValue}.
      * @throws IllegalArgumentException Thrown when unable to convert.
@@ -221,7 +232,7 @@ public class Entity implements Serializable {
 
     /**
      * Returns given {@link Pair} as {@link ODataProperty}.
-     * 
+     *
      * @param field Value to be converted.
      * @return Given value as {@link ODataProperty}.
      */
@@ -239,10 +250,10 @@ public class Entity implements Serializable {
 
         return ODataFactory.newComplexProperty(field.first, value.asComplex());
     }
-    
+
     /**
      * Converts {@link ODataValue} to ODataJClient library independent object.
-     * 
+     *
      * @param value Object to be converted.
      * @return <code>null</code> if value is null; primitive if given value is primitive; List&lt;Object&rt; if given value is collention;
      *         {@link Entity} if given value is complex.
@@ -278,7 +289,7 @@ public class Entity implements Serializable {
 
     /**
      * Checks if given name is correct.
-     * 
+     *
      * @param name Name to be checked.
      * @throws IllegalArgumentException Thrown if given name is incorrect.
      */
@@ -299,7 +310,7 @@ public class Entity implements Serializable {
 
         /**
          * Creates a new instance of {@link Builder} class.
-         * 
+         *
          * @param typeName Name of entity type.
          */
         public Builder(String typeName) {
@@ -328,7 +339,7 @@ public class Entity implements Serializable {
 
         /**
          * Builds an {@link Entity}.
-         * 
+         *
          * @return {@link Entity} was built.
          */
         public Entity build() throws IllegalStateException {
@@ -345,7 +356,7 @@ public class Entity implements Serializable {
 
         /**
          * Represents metadata as an {@link Entity} to be added to entity.
-         * 
+         *
          * @param metadata Metadata to be converted.
          * @return Entity was created.
          */

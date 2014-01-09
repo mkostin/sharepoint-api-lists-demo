@@ -1,9 +1,9 @@
-package com.microsoft.opentech.office.core.network.auth;
+package com.microsoft.opentech.office.core.auth.method;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 
-import com.microsoft.opentech.office.core.network.NetworkException;
+import com.microsoft.opentech.office.core.net.NetworkException;
 
 /**
  * Interface for credentials to be sent in a request.

@@ -1,4 +1,4 @@
-package com.microsoft.opentech.office.core.network.auth;
+package com.microsoft.opentech.office.core.auth.method;
 
 import java.io.IOException;
 
@@ -16,8 +16,9 @@ import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-import com.microsoft.opentech.office.core.network.BaseOperation;
-import com.microsoft.opentech.office.core.odata.async.ICallback;
+import com.microsoft.opentech.office.core.action.BaseOperation;
+import com.microsoft.opentech.office.core.action.async.IOperationCallback;
+import com.microsoft.opentech.office.core.auth.ISharePointCredentials;
 
 /**
  * Operation to retrieve access code to use in {@link AccessTokenOperation}.
@@ -32,12 +33,12 @@ class AccessCodeOperation extends BaseOperation<String> {
 
     /**
      * Creates a new instance of {@link AccessCodeOperation} class.
-     * 
+     *
      * @param listener Callback to b invoked when operation finishes.
      * @param activity Activity where operation is executed.
      * @param creds Authentication credentials.
      */
-    public AccessCodeOperation(ICallback<String> listener, Activity activity, ISharePointCredentials creds) {
+    public AccessCodeOperation(IOperationCallback<String> listener, Activity activity, ISharePointCredentials creds) {
         super(listener);
 
         mCreds = creds;
@@ -147,7 +148,7 @@ class AccessCodeOperation extends BaseOperation<String> {
 
         wv.loadUrl(url);
         dialog.show();
-        
+
         // Since result returned via callback we need not to return something here. So, return null?
         return null;
     }
